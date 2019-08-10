@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 var debug = true
+
 //
 //func join() {
 //	if !isLastChangeSecondsAgo() {
@@ -18,42 +20,43 @@ var debug = true
 //	}
 //}
 //
-//func startSession() {
-//	if !isNothingToCommit() {
-//		sayNote("uncommitted changes")
-//		return
-//	}
-//
-//	git("fetch", "--prune")
-//	git("pull")
-//
-//	if hasMobbingBranch() && hasMobbingBranchOrigin() {
-//		sayInfo("rejoining mob session")
-//		git("branch", "-D", wipBranch)
-//		git("checkout", wipBranch)
-//		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
-//	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
-//		sayInfo("create " + wipBranch + " from " + baseBranch)
-//		git("checkout", baseBranch)
-//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-//		git("branch", wipBranch)
-//		git("checkout", wipBranch)
-//		git("push", "--set-upstream", remoteName, wipBranch)
-//	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
-//		sayInfo("joining mob session")
-//		git("checkout", wipBranch)
-//		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
-//	} else {
-//		sayInfo("purging local branch and start new " + wipBranch + " branch from " + baseBranch)
-//		git("branch", "-D", wipBranch) // check if unmerged commits
-//
-//		git("checkout", baseBranch)
-//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-//		git("branch", wipBranch)
-//		git("checkout", wipBranch)
-//		git("push", "--set-upstream", remoteName, wipBranch)
-//	}
-//}
+func startSession() {
+	if !isNothingToCommit() {
+		sayNote("uncommitted changes")
+		return
+	}
+
+	git("fetch", "--prune")
+	git("pull")
+
+	if hasMobbingBranch() && hasMobbingBranchOrigin() {
+		sayInfo("rejoining mob session")
+		git("branch", "-D", settings.BranchName)
+		git("checkout", settings.BranchName)
+		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
+		sayInfo("create " + settings.BranchName + " from " + baseBranch)
+		git("checkout", baseBranch)
+		git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
+		git("branch", settings.BranchName)
+		git("checkout", settings.BranchName)
+		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
+	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
+		sayInfo("joining mob session")
+		git("checkout", settings.BranchName)
+		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+	} else {
+		sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + baseBranch)
+		git("branch", "-D", settings.BranchName) // check if unmerged commits
+
+		git("checkout", baseBranch)
+		git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
+		git("branch", settings.BranchName)
+		git("checkout", settings.BranchName)
+		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
+	}
+}
+
 //
 //func next() {
 //	if !isMobbing() {
@@ -67,7 +70,7 @@ var debug = true
 //		git("add", "--all")
 //		git("commit", "--message", "\""+wipCommitMessage+"\"")
 //		changes := getChangesOfLastCommit()
-//		git("push", remoteName, wipBranch)
+//		git("push", settings.RemoteName, settings.BranchName)
 //		say(changes)
 //	}
 //	showNext()
@@ -96,19 +99,19 @@ var debug = true
 //			git("add", "--all")
 //			git("commit", "--message", "\""+wipCommitMessage+"\"")
 //		}
-//		git("push", remoteName, wipBranch)
+//		git("push", settings.RemoteName, settings.BranchName)
 //
 //		git("checkout", baseBranch)
-//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-//		git("merge", "--squash", wipBranch)
+//		git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
+//		git("merge", "--squash", settings.BranchName)
 //
-//		git("branch", "-D", wipBranch)
-//		git("push", remoteName, "--delete", wipBranch)
+//		git("branch", "-D", settings.BranchName)
+//		git("push", settings.RemoteName, "--delete", settings.BranchName)
 //		say(getCachedChanges())
 //		sayTodo("git commit -m 'describe the changes'")
 //	} else {
 //		git("checkout", baseBranch)
-//		git("branch", "-D", wipBranch)
+//		git("branch", "-D", settings.BranchName)
 //		sayInfo("someone else already ended your mob session")
 //	}
 //}
@@ -117,7 +120,7 @@ var debug = true
 //	if isMobbing() {
 //		sayInfo("mobbing in progress")
 //
-//		output := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
+//		output := silentgit("--no-pager", "log", baseBranch+".."+settings.BranchName, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
 //		say(output)
 //	} else {
 //		sayInfo("you aren't mobbing right now")
@@ -128,33 +131,34 @@ var debug = true
 //	}
 //}
 //
-//func isNothingToCommit() bool {
-//	output := silentgit("status", "--short")
-//	isMobbing := len(strings.TrimSpace(output)) == 0
-//	return isMobbing
-//}
-//
-//func isMobbing() bool {
-//	output := silentgit("branch")
-//	return strings.Contains(output, "* "+wipBranch)
-//}
-//
-//func hasMobbingBranch() bool {
-//	output := silentgit("branch")
-//	return strings.Contains(output, "  "+wipBranch) || strings.Contains(output, "* "+wipBranch)
-//}
-//
-//func hasMobbingBranchOrigin() bool {
-//	output := silentgit("branch", "--remotes")
-//	return strings.Contains(output, "  "+remoteName+"/"+wipBranch)
-//}
+func isNothingToCommit() bool {
+	output := silentgit("status", "--short")
+	isMobbing := len(strings.TrimSpace(output)) == 0
+	return isMobbing
+}
+
+func isMobbing() bool {
+	output := silentgit("branch")
+	return strings.Contains(output, "* "+settings.BranchName)
+}
+
+func hasMobbingBranch() bool {
+	output := silentgit("branch")
+	return strings.Contains(output, "  "+settings.BranchName) || strings.Contains(output, "* "+settings.BranchName)
+}
+
+func hasMobbingBranchOrigin() bool {
+	output := silentgit("branch", "--remotes")
+	return strings.Contains(output, "  "+settings.RemoteName+"/"+settings.BranchName)
+}
+
 //
 //func getGitUserName() string {
 //	return strings.TrimSpace(silentgit("config", "--get", "user.name"))
 //}
 //
 //func isLastChangeSecondsAgo() bool {
-//	changes := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%cr", "--abbrev-commit")
+//	changes := silentgit("--no-pager", "log", baseBranch+".."+settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
 //	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 //	numberOfLines := len(lines)
 //	if numberOfLines < 1 {
@@ -165,7 +169,7 @@ var debug = true
 //}
 //
 //func showNext() {
-//	changes := strings.TrimSpace(silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%an", "--abbrev-commit"))
+//	changes := strings.TrimSpace(silentgit("--no-pager", "log", baseBranch+".."+settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
 //	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 //	numberOfLines := len(lines)
 //	if debug {

@@ -7,8 +7,20 @@ import (
 )
 
 var argsMap = map[string]string{}
+var settings Settings
+var envKey = "MOB"
+
+type Settings struct {
+	BaseBranchName string
+	BaseRemoteName string
+	BranchName     string
+	RemoteName     string
+	CommitMessage  string
+	TimeLimit      int
+	Mob            string
+}
+
 var envVariables = map[string]string{
-	"ENV_KEY":        "MOB",
 	"BRANCH":         "",
 	"REMOTE":         "origin",
 	"COMMIT_MESSAGE": "Mob Session COMPLETE [ci-skip]",
@@ -23,7 +35,7 @@ func setup() {
 }
 
 func parseEnvironmentVariables() {
-	for envKey, _ := range envVariables {
+	for envKey := range envVariables {
 		setEnvVarIfExists(envKey)
 	}
 }
