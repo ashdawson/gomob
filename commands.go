@@ -20,20 +20,26 @@ func join() {
 	}
 }
 
-func startTimer(timerInMinutes string) {
-	timeoutInMinutes, _ := strconv.Atoi(timerInMinutes)
-
+func startTimer() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		timeOfTimeout := time.Now().Add(time.Minute * time.Duration(timeoutInMinutes)).Format("15:04")
-		sayOkay(timerInMinutes + " minutes timer started (finishes at approx. " + timeOfTimeout + ")")
 		time.Sleep(1 * time.Minute)
 		answer, err := dlgs.Question("Question", "Your mob time has ended. Are you ready to swap?", true)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Print(answer)
+		if answer {
+			fmt.Print("Pushing to git")
+		} else {
+			selection, select2, err := dlgs.List("List", "Remind me again in:", []string{"5", "10", "15"})
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(select2)
+			fmt.Println(selection)
+			fmt.Print("Pushing to git")
+		}
 	}()
 }
 
