@@ -12,5 +12,6 @@ func version() {
 
 func main() {
 	setup()
+	//start()
 	wg.Wait()
 }

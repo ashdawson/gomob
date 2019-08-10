@@ -2,224 +2,195 @@ package main
 
 import (
 	"fmt"
-	"github.com/gen2brain/dlgs"
 	"os"
 	"os/exec"
-	"strconv"
-	"strings"
-	"time"
 )
 
-func join() {
-	if !isLastChangeSecondsAgo() {
-		sayInfo("Actively waiting for new remote commit...")
-	}
-	for !isLastChangeSecondsAgo() {
-		time.Sleep(time.Second)
-		git("pull")
-	}
-}
-
-func startTimer() {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		time.Sleep(1 * time.Minute)
-		answer, err := dlgs.Question("Question", "Your mob time has ended. Are you ready to swap?", true)
-		if err != nil {
-			panic(err)
-		}
-		if answer {
-			fmt.Print("Pushing to git")
-		} else {
-			selection, select2, err := dlgs.List("List", "Remind me again in:", []string{"5", "10", "15"})
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(select2)
-			fmt.Println(selection)
-			fmt.Print("Pushing to git")
-		}
-	}()
-}
-
-func start() {
-	if !isNothingToCommit() {
-		sayNote("uncommitted changes")
-		return
-	}
-
-	git("fetch", "--prune")
-	git("pull")
-
-	if hasMobbingBranch() && hasMobbingBranchOrigin() {
-		sayInfo("rejoining mob session")
-		git("branch", "-D", wipBranch)
-		git("checkout", wipBranch)
-		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
-	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
-		sayInfo("create " + wipBranch + " from " + baseBranch)
-		git("checkout", baseBranch)
-		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-		git("branch", wipBranch)
-		git("checkout", wipBranch)
-		git("push", "--set-upstream", remoteName, wipBranch)
-	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
-		sayInfo("joining mob session")
-		git("checkout", wipBranch)
-		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
-	} else {
-		sayInfo("purging local branch and start new " + wipBranch + " branch from " + baseBranch)
-		git("branch", "-D", wipBranch) // check if unmerged commits
-
-		git("checkout", baseBranch)
-		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-		git("branch", wipBranch)
-		git("checkout", wipBranch)
-		git("push", "--set-upstream", remoteName, wipBranch)
-	}
-}
-
-func next() {
-	if !isMobbing() {
-		sayError("you aren't mobbing")
-		return
-	}
-
-	if isNothingToCommit() {
-		sayInfo("nothing was done, so nothing to commit")
-	} else {
-		git("add", "--all")
-		git("commit", "--message", "\""+wipCommitMessage+"\"")
-		changes := getChangesOfLastCommit()
-		git("push", remoteName, wipBranch)
-		say(changes)
-	}
-	showNext()
-
-	git("checkout", baseBranch)
-}
-
-func getChangesOfLastCommit() string {
-	return strings.TrimSpace(silentgit("diff", "HEAD^1", "--stat"))
-}
-
-func getCachedChanges() string {
-	return strings.TrimSpace(silentgit("diff", "--cached", "--stat"))
-}
-
-func done() {
-	if !isMobbing() {
-		sayError("you aren't mobbing")
-		return
-	}
-
-	git("fetch", "--prune")
-
-	if hasMobbingBranchOrigin() {
-		if !isNothingToCommit() {
-			git("add", "--all")
-			git("commit", "--message", "\""+wipCommitMessage+"\"")
-		}
-		git("push", remoteName, wipBranch)
-
-		git("checkout", baseBranch)
-		git("merge", remoteName+"/"+baseBranch, "--ff-only")
-		git("merge", "--squash", wipBranch)
-
-		git("branch", "-D", wipBranch)
-		git("push", remoteName, "--delete", wipBranch)
-		say(getCachedChanges())
-		sayTodo("git commit -m 'describe the changes'")
-	} else {
-		git("checkout", baseBranch)
-		git("branch", "-D", wipBranch)
-		sayInfo("someone else already ended your mob session")
-	}
-}
-
-func status() {
-	if isMobbing() {
-		sayInfo("mobbing in progress")
-
-		output := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
-		say(output)
-	} else {
-		sayInfo("you aren't mobbing right now")
-	}
-
-	if !hasSay() {
-		sayNote("text-to-speech disabled because 'say' not found")
-	}
-}
-
-func isNothingToCommit() bool {
-	output := silentgit("status", "--short")
-	isMobbing := len(strings.TrimSpace(output)) == 0
-	return isMobbing
-}
-
-func isMobbing() bool {
-	output := silentgit("branch")
-	return strings.Contains(output, "* "+wipBranch)
-}
-
-func hasMobbingBranch() bool {
-	output := silentgit("branch")
-	return strings.Contains(output, "  "+wipBranch) || strings.Contains(output, "* "+wipBranch)
-}
-
-func hasMobbingBranchOrigin() bool {
-	output := silentgit("branch", "--remotes")
-	return strings.Contains(output, "  "+remoteName+"/"+wipBranch)
-}
-
-func getGitUserName() string {
-	return strings.TrimSpace(silentgit("config", "--get", "user.name"))
-}
-
-func isLastChangeSecondsAgo() bool {
-	changes := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%cr", "--abbrev-commit")
-	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
-	numberOfLines := len(lines)
-	if numberOfLines < 1 {
-		return true
-	}
-
-	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
-}
-
-func displayLog() {
-
-}
-
-func showNext() {
-	changes := strings.TrimSpace(silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%an", "--abbrev-commit"))
-	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
-	numberOfLines := len(lines)
-	if debug {
-		say("there have been " + strconv.Itoa(numberOfLines) + " changes")
-	}
-	gitUserName := getGitUserName()
-	if debug {
-		say("current git user.name is '" + gitUserName + "'")
-	}
-	if numberOfLines < 1 {
-		return
-	}
-	var history = ""
-	for i := 0; i < len(lines); i++ {
-		if lines[i] == gitUserName && i > 0 {
-			sayInfo("Committers after your last commit: " + history)
-			sayInfo("***" + lines[i-1] + "*** is (probably) next.")
-			return
-		}
-		if history != "" {
-			history = ", " + history
-		}
-		history = lines[i] + history
-	}
-}
+var debug = true
+//
+//func join() {
+//	if !isLastChangeSecondsAgo() {
+//		sayInfo("Actively waiting for new remote commit...")
+//	}
+//	for !isLastChangeSecondsAgo() {
+//		time.Sleep(time.Second)
+//		git("pull")
+//	}
+//}
+//
+//func startSession() {
+//	if !isNothingToCommit() {
+//		sayNote("uncommitted changes")
+//		return
+//	}
+//
+//	git("fetch", "--prune")
+//	git("pull")
+//
+//	if hasMobbingBranch() && hasMobbingBranchOrigin() {
+//		sayInfo("rejoining mob session")
+//		git("branch", "-D", wipBranch)
+//		git("checkout", wipBranch)
+//		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
+//	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
+//		sayInfo("create " + wipBranch + " from " + baseBranch)
+//		git("checkout", baseBranch)
+//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
+//		git("branch", wipBranch)
+//		git("checkout", wipBranch)
+//		git("push", "--set-upstream", remoteName, wipBranch)
+//	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
+//		sayInfo("joining mob session")
+//		git("checkout", wipBranch)
+//		git("branch", "--set-upstream-to="+remoteName+"/"+wipBranch, wipBranch)
+//	} else {
+//		sayInfo("purging local branch and start new " + wipBranch + " branch from " + baseBranch)
+//		git("branch", "-D", wipBranch) // check if unmerged commits
+//
+//		git("checkout", baseBranch)
+//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
+//		git("branch", wipBranch)
+//		git("checkout", wipBranch)
+//		git("push", "--set-upstream", remoteName, wipBranch)
+//	}
+//}
+//
+//func next() {
+//	if !isMobbing() {
+//		sayError("you aren't mobbing")
+//		return
+//	}
+//
+//	if isNothingToCommit() {
+//		sayInfo("nothing was done, so nothing to commit")
+//	} else {
+//		git("add", "--all")
+//		git("commit", "--message", "\""+wipCommitMessage+"\"")
+//		changes := getChangesOfLastCommit()
+//		git("push", remoteName, wipBranch)
+//		say(changes)
+//	}
+//	showNext()
+//
+//	git("checkout", baseBranch)
+//}
+//
+//func getChangesOfLastCommit() string {
+//	return strings.TrimSpace(silentgit("diff", "HEAD^1", "--stat"))
+//}
+//
+//func getCachedChanges() string {
+//	return strings.TrimSpace(silentgit("diff", "--cached", "--stat"))
+//}
+//
+//func done() {
+//	if !isMobbing() {
+//		sayError("you aren't mobbing")
+//		return
+//	}
+//
+//	git("fetch", "--prune")
+//
+//	if hasMobbingBranchOrigin() {
+//		if !isNothingToCommit() {
+//			git("add", "--all")
+//			git("commit", "--message", "\""+wipCommitMessage+"\"")
+//		}
+//		git("push", remoteName, wipBranch)
+//
+//		git("checkout", baseBranch)
+//		git("merge", remoteName+"/"+baseBranch, "--ff-only")
+//		git("merge", "--squash", wipBranch)
+//
+//		git("branch", "-D", wipBranch)
+//		git("push", remoteName, "--delete", wipBranch)
+//		say(getCachedChanges())
+//		sayTodo("git commit -m 'describe the changes'")
+//	} else {
+//		git("checkout", baseBranch)
+//		git("branch", "-D", wipBranch)
+//		sayInfo("someone else already ended your mob session")
+//	}
+//}
+//
+//func status() {
+//	if isMobbing() {
+//		sayInfo("mobbing in progress")
+//
+//		output := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
+//		say(output)
+//	} else {
+//		sayInfo("you aren't mobbing right now")
+//	}
+//
+//	if !hasSay() {
+//		sayNote("text-to-speech disabled because 'say' not found")
+//	}
+//}
+//
+//func isNothingToCommit() bool {
+//	output := silentgit("status", "--short")
+//	isMobbing := len(strings.TrimSpace(output)) == 0
+//	return isMobbing
+//}
+//
+//func isMobbing() bool {
+//	output := silentgit("branch")
+//	return strings.Contains(output, "* "+wipBranch)
+//}
+//
+//func hasMobbingBranch() bool {
+//	output := silentgit("branch")
+//	return strings.Contains(output, "  "+wipBranch) || strings.Contains(output, "* "+wipBranch)
+//}
+//
+//func hasMobbingBranchOrigin() bool {
+//	output := silentgit("branch", "--remotes")
+//	return strings.Contains(output, "  "+remoteName+"/"+wipBranch)
+//}
+//
+//func getGitUserName() string {
+//	return strings.TrimSpace(silentgit("config", "--get", "user.name"))
+//}
+//
+//func isLastChangeSecondsAgo() bool {
+//	changes := silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%cr", "--abbrev-commit")
+//	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
+//	numberOfLines := len(lines)
+//	if numberOfLines < 1 {
+//		return true
+//	}
+//
+//	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
+//}
+//
+//func showNext() {
+//	changes := strings.TrimSpace(silentgit("--no-pager", "log", baseBranch+".."+wipBranch, "--pretty=format:%an", "--abbrev-commit"))
+//	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
+//	numberOfLines := len(lines)
+//	if debug {
+//		say("there have been " + strconv.Itoa(numberOfLines) + " changes")
+//	}
+//	gitUserName := getGitUserName()
+//	if debug {
+//		say("current git user.name is '" + gitUserName + "'")
+//	}
+//	if numberOfLines < 1 {
+//		return
+//	}
+//	var history = ""
+//	for i := 0; i < len(lines); i++ {
+//		if lines[i] == gitUserName && i > 0 {
+//			sayInfo("Committers after your last commit: " + history)
+//			sayInfo("***" + lines[i-1] + "*** is (probably) next.")
+//			return
+//		}
+//		if history != "" {
+//			history = ", " + history
+//		}
+//		history = lines[i] + history
+//	}
+//}
 
 func config() {
 	say("config")
