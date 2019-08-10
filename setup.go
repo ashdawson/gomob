@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/ashdawson/gomob/command"
 	"os"
 	"strings"
 )
@@ -17,10 +17,9 @@ var envVariables = map[string]string{
 }
 
 func setup() {
-	fmt.Println("test")
-	//parseEnvironmentVariables()
-	//command.Read()
-	//getArguments()
+	parseEnvironmentVariables()
+	command.Read()
+	getArguments()
 }
 
 func parseEnvironmentVariables() {

@@ -1,15 +1,9 @@
 package main
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
-func start() bool {
-
-	output := silentgit("status", "--short")
-	isMobbing := len(strings.TrimSpace(output)) == 0
-	return isMobbing
+func start() {
+	runCommands()
 }
 
 func runCommands() {
