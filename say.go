@@ -2,32 +2,32 @@ package main
 
 import "fmt"
 
-func say(s string) {
+func say(s interface{}) {
 	fmt.Print(s)
 	fmt.Print("\n")
 }
 
-func sayError(s string) {
+func sayError(s interface{}) {
 	fmt.Print(" ⚡ ")
 	say(s)
 }
 
-func sayOkay(s string) {
+func sayOkay(s interface{}) {
 	fmt.Print(" ✓ ")
 	say(s)
 }
 
-func sayNote(s string) {
+func sayNote(s interface{}) {
 	fmt.Print(" ❗ ")
 	say(s)
 }
 
-func sayTodo(s string) {
+func sayTodo(s interface{}) {
 	fmt.Print(" ☐ ")
 	say(s)
 }
 
-func sayInfo(s string) {
+func sayInfo(s interface{}) {
 	fmt.Print(" > ")
 	say(s)
 }

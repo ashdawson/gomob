@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/gen2brain/dlgs"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -20,21 +22,19 @@ func join() {
 
 func startTimer(timerInMinutes string) {
 	timeoutInMinutes, _ := strconv.Atoi(timerInMinutes)
-	timeoutInSeconds := timeoutInMinutes * 60
-	timerInSeconds := strconv.Itoa(timeoutInSeconds)
 
-	command := exec.Command("sh", "-c", "( sleep "+timerInSeconds+" && say \"time's up\" && (/usr/bin/osascript -e 'display notification \"time is up\"' || /usr/bin/notify-send \"time is up\")  & )")
-	if debug {
-		fmt.Println(command.Args)
-	}
-	err := command.Start()
-	if err != nil {
-		sayError("timer couldn't be started... (timer only works on OSX)")
-		sayError(err)
-	} else {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		timeOfTimeout := time.Now().Add(time.Minute * time.Duration(timeoutInMinutes)).Format("15:04")
 		sayOkay(timerInMinutes + " minutes timer started (finishes at approx. " + timeOfTimeout + ")")
-	}
+		time.Sleep(1 * time.Minute)
+		answer, err := dlgs.Question("Question", "Your mob time has ended. Are you ready to swap?", true)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Print(answer)
+	}()
 }
 
 func start() {
@@ -234,54 +234,53 @@ func help() {
 	say("\tmob --version \t# prints the version")
 }
 
-//
-//func silentgit(args ...string) string {
-//	command := exec.Command("git", args...)
-//	if debug {
-//		fmt.Println(command.Args)
-//	}
-//	outputBinary, err := command.CombinedOutput()
-//	output := string(outputBinary)
-//	if debug {
-//		fmt.Println(output)
-//	}
-//	if err != nil {
-//		fmt.Println(output)
-//		fmt.Println(err)
-//		os.Exit(1)
-//	}
-//	return output
-//}
-//
-//func hasSay() bool {
-//	command := exec.Command("which", "say")
-//	if debug {
-//		fmt.Println(command.Args)
-//	}
-//	outputBinary, err := command.CombinedOutput()
-//	output := string(outputBinary)
-//	if debug {
-//		fmt.Println(output)
-//	}
-//	return err == nil
-//}
-//
-//func git(args ...string) string {
-//	command := exec.Command("git", args...)
-//	if debug {
-//		fmt.Println(command.Args)
-//	}
-//	outputBinary, err := command.CombinedOutput()
-//	output := string(outputBinary)
-//	if debug {
-//		fmt.Println(output)
-//	}
-//	if err != nil {
-//		sayError(command.Args)
-//		sayError(err)
-//		os.Exit(1)
-//	}
-//	sayOkay(command.Args)
-//
-//	return output
-//}
+func silentgit(args ...string) string {
+	command := exec.Command("git", args...)
+	if debug {
+		fmt.Println(command.Args)
+	}
+	outputBinary, err := command.CombinedOutput()
+	output := string(outputBinary)
+	if debug {
+		fmt.Println(output)
+	}
+	if err != nil {
+		fmt.Println(output)
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return output
+}
+
+func hasSay() bool {
+	command := exec.Command("which", "say")
+	if debug {
+		fmt.Println(command.Args)
+	}
+	outputBinary, err := command.CombinedOutput()
+	output := string(outputBinary)
+	if debug {
+		fmt.Println(output)
+	}
+	return err == nil
+}
+
+func git(args ...string) string {
+	command := exec.Command("git", args...)
+	if debug {
+		fmt.Println(command.Args)
+	}
+	outputBinary, err := command.CombinedOutput()
+	output := string(outputBinary)
+	if debug {
+		fmt.Println(output)
+	}
+	if err != nil {
+		sayError(command.Args)
+		sayError(err)
+		os.Exit(1)
+	}
+	sayOkay(command.Args)
+
+	return output
+}

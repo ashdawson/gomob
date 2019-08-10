@@ -2,23 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/ashdawson/gomob/command"
 	"os"
 	"strings"
-	"github.com/ashdawson/gomob/flags"
 )
 
 var argsMap = map[string]string{}
 var envVariables = map[string]string{
-	"MOB_BRANCH":         "",
-	"MOB_REMOTE":         "origin",
-	"MOB_COMMIT_MESSAGE": "Mob Session COMPLETE [ci-skip]",
-	"MOB_TIME_LIMIT":     "15",
-	"MOB_TEAM":           "",
+	"ENV_KEY":        "MOB",
+	"BRANCH":         "",
+	"REMOTE":         "origin",
+	"COMMIT_MESSAGE": "Mob Session COMPLETE [ci-skip]",
+	"TIME_LIMIT":     "15",
+	"TEAM":           "",
 }
 
 func setup() {
 	parseEnvironmentVariables()
-	flags.Read()
+	command.Read()
 	getArguments()
 	runCommands()
 }
@@ -29,7 +30,13 @@ func parseEnvironmentVariables() {
 	}
 }
 
+func prependToString(prepend string, subject string) string {
+	subject = prepend + subject
+	return subject
+}
+
 func setEnvVarIfExists(key string) {
+	prependToString(envVariables["ENV_KEY"], key)
 	if localVar, ok := os.LookupEnv(key); ok {
 		envVariables[key] = localVar
 	}
