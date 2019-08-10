@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"github.com/ashdawson/gomob/flags"
 )
 
 var argsMap = map[string]string{}
@@ -17,6 +18,7 @@ var envVariables = map[string]string{
 
 func setup() {
 	parseEnvironmentVariables()
+	flags.Read()
 	getArguments()
 	runCommands()
 }
@@ -53,7 +55,7 @@ func runCommands() {
 		switch argKey {
 		case "start":
 			config()
-			break;
+			break
 		//case "start":
 		//	start()
 		//	status()
