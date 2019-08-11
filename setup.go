@@ -1,55 +1,69 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/ashdawson/gomob/command"
+	"io/ioutil"
 	"os"
 	"strings"
 )
 
 var argsMap = map[string]string{}
 var settings Settings
-var envKey = "MOB"
+var mobSettingsFile = "mobsettings.json"
 
 type Settings struct {
-	BaseBranchName string
-	BaseRemoteName string
-	BranchName     string
-	RemoteName     string
-	CommitMessage  string
+	BaseBranchName string `json:"BaseBranchName"`
+	BaseRemoteName string `json:"BaseRemoteName"`
+	BranchName     string `json:"BranchName"`
+	RemoteName     string `json:"RemoteName"`
 	TimeLimit      int
-	Mob            string
-}
-
-var envVariables = map[string]string{
-	"BRANCH":         "",
-	"REMOTE":         "origin",
-	"COMMIT_MESSAGE": "Mob Session COMPLETE [ci-skip]",
-	"TIME_LIMIT":     "15",
-	"TEAM":           "",
 }
 
 func setup() {
-	parseEnvironmentVariables()
+	checkSettings()
 	command.Read()
 	getArguments()
 }
 
-func parseEnvironmentVariables() {
-	for envKey := range envVariables {
-		setEnvVarIfExists(envKey)
+func check(e error) {
+	if e != nil {
+		panic(e)
 	}
 }
 
-func prependToString(prepend string, subject string) string {
-	subject = prepend + subject
-	return subject
+func createSettings() {
+	_, err := os.Create(mobSettingsFile)
+	check(err)
+	branchDetails := strings.Split(silentgit("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"), "/")
+	settings = Settings {
+		"master",
+		"origin",
+		strings.Trim(branchDetails[0], "\n"),
+		strings.Trim(branchDetails[1], "\n"),
+		15,
+	}
+
+	file, _ := json.MarshalIndent(settings, "", " ")
+	err = ioutil.WriteFile(mobSettingsFile, file, 0644)
+	check(err)
 }
 
-func setEnvVarIfExists(key string) {
-	prependToString(envVariables["ENV_KEY"], key)
-	if localVar, ok := os.LookupEnv(key); ok {
-		envVariables[key] = localVar
+func checkSettings() {
+	_, err := os.Open(mobSettingsFile)
+	if err != nil {
+		createSettings()
+	} else {
+		readSettings()
 	}
+}
+
+func readSettings() {
+	file, _ := ioutil.ReadFile(mobSettingsFile)
+	settings = Settings{}
+
+	err := json.Unmarshal([]byte(file), &settings)
+	check(err)
 }
 
 func getArguments() {

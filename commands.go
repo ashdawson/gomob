@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -34,27 +35,28 @@ func startSession() {
 		git("branch", "-D", settings.BranchName)
 		git("checkout", settings.BranchName)
 		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
-	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
-		sayInfo("create " + settings.BranchName + " from " + baseBranch)
-		git("checkout", baseBranch)
-		git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
-		git("branch", settings.BranchName)
-		git("checkout", settings.BranchName)
-		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
-	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
-		sayInfo("joining mob session")
-		git("checkout", settings.BranchName)
-		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
-	} else {
-		sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + baseBranch)
-		git("branch", "-D", settings.BranchName) // check if unmerged commits
-
-		git("checkout", baseBranch)
-		git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
-		git("branch", settings.BranchName)
-		git("checkout", settings.BranchName)
-		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
 	}
+	//else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
+	//	sayInfo("create " + settings.BranchName + " from " + baseBranch)
+	//	git("checkout", baseBranch)
+	//	git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
+	//	git("branch", settings.BranchName)
+	//	git("checkout", settings.BranchName)
+	//	git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
+	//} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
+	//	sayInfo("joining mob session")
+	//	git("checkout", settings.BranchName)
+	//	git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+	//} else {
+	//	sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + baseBranch)
+	//	git("branch", "-D", settings.BranchName) // check if unmerged commits
+	//
+	//	git("checkout", baseBranch)
+	//	git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
+	//	git("branch", settings.BranchName)
+	//	git("checkout", settings.BranchName)
+	//	git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
+	//}
 }
 
 //
@@ -198,9 +200,8 @@ func hasMobbingBranchOrigin() bool {
 
 func config() {
 	say("config")
-	for envKey, envValue := range envVariables {
-		say(fmt.Sprintf("\t[%s] = %s", envKey, envValue))
-	}
+	s, _ := json.MarshalIndent(settings, "", "\t")
+	say(string(s))
 }
 
 func help() {
