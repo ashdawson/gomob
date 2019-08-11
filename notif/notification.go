@@ -5,6 +5,8 @@ import (
 	"github.com/gen2brain/dlgs"
 )
 
+var appName = "GoMob"
+
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -12,12 +14,12 @@ func check(e error) {
 }
 
 func Alert(message string) {
-	err := beeep.Alert("GoMob", message, "assets/warning.png")
+	err := beeep.Alert(appName, message, "assets/warning.png")
 	check(err)
 }
 
 func Notify(message string) {
-	err := beeep.Notify("GoMob", message, "assets/warning.png")
+	err := beeep.Notify(appName, message, "assets/warning.png")
 	check(err)
 }
 
