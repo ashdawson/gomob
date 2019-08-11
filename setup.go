@@ -17,6 +17,7 @@ type Settings struct {
 	BaseRemoteName string `json:"BaseRemoteName"`
 	BranchName     string `json:"BranchName"`
 	RemoteName     string `json:"RemoteName"`
+	CommitMessage string `json:"CommitMessage"`
 	TimeLimit      int
 }
 
@@ -39,8 +40,9 @@ func createSettings() {
 	settings = Settings {
 		"master",
 		"origin",
-		strings.Trim(branchDetails[0], "\n"),
 		strings.Trim(branchDetails[1], "\n"),
+		strings.Trim(branchDetails[0], "\n"),
+		"WIP - [MOB] ",
 		15,
 	}
 

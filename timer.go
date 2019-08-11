@@ -1,38 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gen2brain/dlgs"
+	"strconv"
 	"time"
 )
 
-func startTimer() {
+func startTimer(reminderTime int) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		time.Sleep(1 * time.Minute)
-		var swap = dlgSwap()
+		time.Sleep(time.Duration(reminderTime) * time.Minute)
+		Notify("Your mob time has ended")
+		var swap = Question("Your mob time has ended. Are you ready to swap?")
 		if swap {
-			fmt.Print("Pushing to git")
+			changes := getChangesOfLastCommit()
+			say(changes)
+			//next()
 		} else {
-			var time, _ = dlgRemindMe()
-			fmt.Println(time)
+			var selected, _ = Reminder("Remind me again in:", []string{"5", "10", "15"})
+			reminderTime, err := strconv.Atoi(selected)
+			check(err)
+			startTimer(reminderTime)
 		}
 	}()
-}
-
-func dlgSwap() bool {
-	ok, err := dlgs.Question("Question", "Your mob time has ended. Are you ready to swap?", true)
-	if err != nil {
-		panic(err)
-	}
-	return ok
-}
-
-func dlgRemindMe() (string, bool) {
-	selection, ok, err := dlgs.List("List", "Remind me again in:", []string{"5", "10", "15"})
-	if err != nil {
-		panic(err)
-	}
-	return selection, ok
 }
