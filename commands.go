@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ashdawson/gomob/notif"
 	"os"
 	"os/exec"
 	"strconv"
@@ -24,7 +25,7 @@ func join() {
 
 func startSession() {
 	if !isNothingToCommit() {
-		Notify("You have uncommitted changes")
+		notif.Notify("You have uncommitted changes")
 		return
 	}
 
@@ -36,30 +37,27 @@ func startSession() {
 		git("branch", "-D", settings.BranchName)
 		git("checkout", settings.BranchName)
 		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
+		sayInfo("create " + settings.BranchName + " from " + settings.BaseBranchName)
+		git("checkout", settings.BaseBranchName)
+		git("merge", settings.RemoteName+"/"+settings.BaseBranchName, "--ff-only")
+		git("branch", settings.BranchName)
+		git("checkout", settings.BranchName)
+		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
+	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
+		sayInfo("joining mob session")
+		git("checkout", settings.BranchName)
+		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+	} else {
+		sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + settings.BaseBranchName)
+		git("branch", "-D", settings.BranchName) // check if unmerged commits
+		git("checkout", settings.BaseBranchName)
+		git("merge", settings.RemoteName+"/"+settings.BaseBranchName, "--ff-only")
+		git("branch", settings.BranchName)
+		git("checkout", settings.BranchName)
+		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
 	}
-	//else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
-	//	sayInfo("create " + settings.BranchName + " from " + baseBranch)
-	//	git("checkout", baseBranch)
-	//	git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
-	//	git("branch", settings.BranchName)
-	//	git("checkout", settings.BranchName)
-	//	git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
-	//} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
-	//	sayInfo("joining mob session")
-	//	git("checkout", settings.BranchName)
-	//	git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
-	//} else {
-	//	sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + baseBranch)
-	//	git("branch", "-D", settings.BranchName) // check if unmerged commits
-	//
-	//	git("checkout", baseBranch)
-	//	git("merge", settings.RemoteName+"/"+baseBranch, "--ff-only")
-	//	git("branch", settings.BranchName)
-	//	git("checkout", settings.BranchName)
-	//	git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
-	//}
 }
-
 
 func next() {
 	if !isMobbing() {

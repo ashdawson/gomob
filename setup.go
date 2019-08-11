@@ -9,8 +9,8 @@ import (
 )
 
 var argsMap = map[string]string{}
+var mobSettingsFile = "mobSettings.json"
 var settings Settings
-var mobSettingsFile = "mobsettings.json"
 
 type Settings struct {
 	BaseBranchName string `json:"BaseBranchName"`
@@ -45,9 +45,12 @@ func createSettings() {
 		"WIP - [MOB] ",
 		15,
 	}
+	saveSettings()
+}
 
+func saveSettings() {
 	file, _ := json.MarshalIndent(settings, "", " ")
-	err = ioutil.WriteFile(mobSettingsFile, file, 0644)
+	err := ioutil.WriteFile(mobSettingsFile, file, 0644)
 	check(err)
 }
 
@@ -66,6 +69,10 @@ func readSettings() {
 
 	err := json.Unmarshal([]byte(file), &settings)
 	check(err)
+}
+
+func (currentSettings *Settings) updateSetting(setting string, value string) {
+	saveSettings()
 }
 
 func getArguments() {

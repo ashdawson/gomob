@@ -8,6 +8,7 @@ import (
 var wg = &sync.WaitGroup{}
 
 func start() {
+	setup()
 	runCommands()
 }
 
@@ -20,6 +21,8 @@ func runCommands() {
 		case "start":
 			startSession()
 			status()
+			startTimer(settings.TimeLimit)
+			wg.Wait()
 			break
 		case "join":
 			startSession()
@@ -39,6 +42,4 @@ func runCommands() {
 			fmt.Println("OOPS")
 		}
 	}
-	startTimer(settings.TimeLimit)
-	wg.Wait()
 }

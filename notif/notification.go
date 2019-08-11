@@ -1,9 +1,15 @@
-package main
+package notif
 
 import (
 	"github.com/gen2brain/beeep"
 	"github.com/gen2brain/dlgs"
 )
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 func Alert(message string) {
 	err := beeep.Alert("GoMob", message, "assets/warning.png")
