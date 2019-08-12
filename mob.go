@@ -10,6 +10,7 @@ func start() {
 }
 
 func runCommands() {
+	go join()
 	for argKey := range argsMap {
 		switch argKey {
 		case "config":
@@ -19,11 +20,6 @@ func runCommands() {
 			startSession()
 			status()
 			startTimer(settings.TimeLimit)
-			break
-		case "join":
-			startSession()
-			join()
-			status()
 			break
 		case "next":
 			next()
@@ -38,6 +34,5 @@ func runCommands() {
 			fmt.Println("OOPS")
 		}
 	}
-	checkStatus()
 	wg.Wait()
 }

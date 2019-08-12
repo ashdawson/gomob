@@ -4,17 +4,9 @@ import (
 	"encoding/json"
 	"github.com/ashdawson/gomob/notif"
 	"strings"
-	"time"
 )
 
 var debug = false
-
-func join() {
-	for !isLastChangeSecondsAgo() {
-		time.Sleep(time.Second)
-		git("pull")
-	}
-}
 
 func startSession() {
 	if !isNothingToCommit() {
@@ -37,18 +29,10 @@ func startSession() {
 		git("branch", settings.BranchName)
 		git("checkout", settings.BranchName)
 		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
-	} else if !hasMobbingBranch() && hasMobbingBranchOrigin() {
+	} else {
 		sayInfo("joining mob session")
 		git("checkout", settings.BranchName)
 		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
-	} else {
-		sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + settings.BaseBranchName)
-		git("branch", "-D", settings.BranchName)
-		git("checkout", settings.BaseBranchName)
-		git("merge", settings.RemoteName+"/"+settings.BaseBranchName, "--ff-only")
-		git("branch", settings.BranchName)
-		git("checkout", settings.BranchName)
-		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
 	}
 }
 
