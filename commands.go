@@ -128,19 +128,25 @@ func help() {
 
 func openFiles() {
 	// Currently only supports PHPStorm or VSCode
-	app := strings.ToLower(settings.IDE)
-
-	if runtime.GOOS == "windows" {
-		app = app + ".exe"
+	supportedIDE := map[string]bool {
+		"phpstorm": true,
+		"vscode": true,
 	}
+	if !supportedIDE[settings.IDE] {
+		sayInfo(fmt.Sprintf("%s is not a supported IDE", settings.IDE))
+	} else {
+		app := strings.ToLower(settings.IDE)
 
-	if app == "vscode" {
-		app = "code -g"
+		if runtime.GOOS == "windows" {
+			app = app + ".exe"
+		}
+
+		if app == "vscode" {
+			app = "code -g"
+		}
+		sayInfo(app + " " + getLastCommitMessage())
+		exec.Command(app + " " + getLastCommitMessage())
 	}
-
-	fmt.Println(app + " " + getLastCommitMessage())
-
-	exec.Command(app + " " + getLastCommitMessage())
 }
 
 func getCurrentDir() string {

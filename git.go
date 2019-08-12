@@ -41,8 +41,16 @@ func getBranch() string {
 
 func getLastCommitMessage() string {
 	message := git("log", "-1", "--pretty=%B")
-	message = strings.Replace(message, settings.CommitMessage, "", -1)
-	message = strings.ReplaceAll(message, "\n", "")
+	if strings.Contains(message, settings.CommitMessage) {
+		message = strings.Replace(message, settings.CommitMessage, "", -1)
+		message = strings.ReplaceAll(message, "\n", "")
+		files := strings.Split(message, " ")
+		for i := range files {
+			files[i] = getCurrentDir() + `\` + files[i]
+		}
+		message = strings.Join(files, " ")
+	}
+
 	return message
 }
 
