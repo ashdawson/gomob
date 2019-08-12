@@ -13,27 +13,12 @@ var debug = false
 
 func startSession() {
 	openFiles()
-	sayInfo("session started")
-	startTimer(settings.TimeLimit)
-
-	if !isNothingToCommit() {
-		notif.Notify("You have uncommitted changes")
-		return
-	}
 
 	git("fetch", "--prune")
 	git("pull")
 
-	if hasMobbingBranch() && hasMobbingBranchOrigin() {
-		sayInfo("rejoining mob session")
-		git("branch", "-D", settings.BranchName)
-		git("checkout", settings.BranchName)
-		git("branch", "--set-upstream-to="+getBranch(), settings.BranchName)
-	} else {
-		sayInfo("joining mob session")
-		git("checkout", settings.BranchName)
-		git("branch", "--set-upstream-to="+getBranch(), settings.BranchName)
-	}
+	sayInfo("session started")
+	startTimer(settings.TimeLimit)
 }
 
 func next() {
@@ -61,35 +46,6 @@ func commitMessage() string {
 
 func getCachedChanges() string {
 	return strings.TrimSpace(git("diff", "--cached", "--stat"))
-}
-
-func done() {
-	if !isMobbing() {
-		sayError("you aren't mobbing")
-		return
-	}
-
-	git("fetch", "--prune")
-
-	if hasMobbingBranchOrigin() {
-		if !isNothingToCommit() {
-			commit()
-		}
-		git("push", settings.RemoteName, settings.BranchName)
-
-		git("checkout", settings.BranchName)
-		git("merge", getBranch(), "--ff-only")
-		git("merge", "--squash", settings.BranchName)
-
-		git("branch", "-D", settings.BranchName)
-		git("push", settings.RemoteName, "--delete", settings.BranchName)
-		say(getCachedChanges())
-		sayTodo("git commit -m 'describe the changes'")
-	} else {
-		git("checkout", settings.BranchName)
-		git("branch", "-D", settings.BranchName)
-		sayInfo("someone else already ended your mob session")
-	}
 }
 
 func commit() {

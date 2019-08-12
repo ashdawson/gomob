@@ -32,6 +32,7 @@ func join() {
 		if getGitUserName() == showNext() && !isMobbing() && isLastChangeSecondsAgo() {
 			notif.Notify("It is your turn to start")
 			startSession()
+			return
 		}
 		join()
 	}()

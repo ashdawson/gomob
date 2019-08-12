@@ -10,7 +10,6 @@ func start() {
 }
 
 func runCommands() {
-	go join()
 	for argKey := range argsMap {
 		switch argKey {
 		case "config":
@@ -19,11 +18,11 @@ func runCommands() {
 		case "start":
 			startSession()
 			break
+		case "join":
+			join()
+			break
 		case "next":
 			next()
-			break
-		case "done":
-			done()
 			break
 		case "help":
 			help()
