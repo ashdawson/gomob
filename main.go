@@ -1,12 +1,12 @@
 package main
 
+import "time"
+
 func main() {
 	go forever()
 	start()
 }
 
 func forever() {
-	for {
-
-	}
+	time.Sleep(time.Second)
 }
