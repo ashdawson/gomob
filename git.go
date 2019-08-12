@@ -35,7 +35,19 @@ func getBranchDetails() (string, string) {
 	return strings.Trim(branchDetails[0], "\n"), strings.Trim(branchDetails[1], "\n")
 }
 
+func getBranch() string {
+	return settings.RemoteName + "/" + settings.BranchName
+}
+
 func getChangedFiles() string {
-	fileNames := git("diff", "--name-only")
-	return fileNames
+	fileNames := strings.Split(git("diff", "--name-only"), "\n")
+	fileString := ""
+	for _, file := range fileNames {
+		if len(file) > 0 {
+			fileLocation := getCurrentDir() + "\\" + file
+			fileString = fileString + fileLocation + ", "
+		}
+	}
+	fileString = strings.TrimSuffix(fileString, ", ")
+	return fileString
 }

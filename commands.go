@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"github.com/ashdawson/gomob/notif"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 )
 
 var debug = false
 
 func startSession() {
-	//openFiles()
+	openFiles()
 	sayInfo("session started")
 	startTimer(settings.TimeLimit)
 
@@ -26,18 +28,18 @@ func startSession() {
 		sayInfo("rejoining mob session")
 		git("branch", "-D", settings.BranchName)
 		git("checkout", settings.BranchName)
-		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+		git("branch", "--set-upstream-to="+getBranch(), settings.BranchName)
 	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
 		sayInfo("create " + settings.BranchName + " from " + settings.BaseBranchName)
 		git("checkout", settings.BaseBranchName)
-		git("merge", settings.RemoteName+"/"+settings.BaseBranchName, "--ff-only")
+		git("merge", getBranch(), "--ff-only")
 		git("branch", settings.BranchName)
 		git("checkout", settings.BranchName)
 		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
 	} else {
 		sayInfo("joining mob session")
 		git("checkout", settings.BranchName)
-		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
+		git("branch", "--set-upstream-to="+getBranch(), settings.BranchName)
 	}
 }
 
@@ -53,7 +55,7 @@ func next() {
 		git("add", "--all")
 		git("commit", "--message", "\""+commitMessage()+"\"")
 		git("push")
-		sayInfo("changes pushed to " + settings.RemoteName + "/" + settings.BranchName)
+		sayInfo("changes pushed to " + getBranch())
 	}
 
 	if getGitUserName() == showNext() {
@@ -63,10 +65,6 @@ func next() {
 
 func commitMessage() string {
 	return settings.CommitMessage + getChangedFiles()
-}
-
-func getChangesOfLastCommit() string {
-	return strings.TrimSpace(git("diff", "HEAD^1", "--stat"))
 }
 
 func getCachedChanges() string {
@@ -89,7 +87,7 @@ func done() {
 		git("push", settings.RemoteName, settings.BranchName)
 
 		git("checkout", settings.BranchName)
-		git("merge", settings.RemoteName+"/"+settings.BranchName, "--ff-only")
+		git("merge", getBranch(), "--ff-only")
 		git("merge", "--squash", settings.BranchName)
 
 		git("branch", "-D", settings.BranchName)
@@ -121,11 +119,11 @@ func hasMobbingBranch() bool {
 
 func hasMobbingBranchOrigin() bool {
 	output := git("branch", "--remotes")
-	return strings.Contains(output, "  "+settings.RemoteName+"/"+settings.BranchName)
+	return strings.Contains(output, "  "+getBranch())
 }
 
 func isLastChangeSecondsAgo() bool {
-	changes := git("--no-pager", "log", settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
+	changes := git("--no-pager", "log", getBranch(), "--pretty=format:%cr", "--abbrev-commit")
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	if numberOfLines < 1 {
@@ -136,7 +134,7 @@ func isLastChangeSecondsAgo() bool {
 }
 
 func showNext() string {
-	changes := strings.TrimSpace(git("--no-pager", "log", settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
+	changes := strings.TrimSpace(git("--no-pager", "log", getBranch(), "--pretty=format:%an", "--abbrev-commit"))
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	gitUserName := getGitUserName()
@@ -173,14 +171,14 @@ func help() {
 	say("\tmob --help \t# prints this help")
 	say("\tmob --version \t# prints the version")
 }
-//
-//func openFiles() {
-//	app := "phpstorm"
-//	if runtime.GOOS == "windows" {
-//		app = app + ".exe"
-//	}
-//	fmt.Sprintf("%s ", app, )
-//}
+
+func openFiles() {
+	app := strings.ToLower(settings.IDE)
+	if runtime.GOOS == "windows" {
+		app = app + ".exe"
+	}
+	exec.Command(app + getChangedFiles())
+}
 
 func getCurrentDir() string {
 	dir, err := os.Getwd()

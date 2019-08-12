@@ -37,7 +37,7 @@ func check(e error) {
 func createSettings() {
 	_, err := os.Create(mobSettingsFile)
 	check(err)
-	branchName, remoteName := getBranchDetails()
+	remoteName, branchName := getBranchDetails()
 	settings = Settings{
 		"master",
 		"origin",
