@@ -46,7 +46,7 @@ func next() {
 		sayInfo("nothing was done, so nothing to commit")
 	} else {
 		git("add", "--all")
-		git("commit", "--message", "\""+commitMessage()+"\"")
+		git("commit", "--message", commitMessage())
 		git("push")
 		sayInfo("changes pushed to " + getBranch())
 	}
@@ -57,7 +57,9 @@ func next() {
 }
 
 func commitMessage() string {
-	return settings.CommitMessage + getChangedFiles(false)
+	commitMessage := settings.CommitMessage + getChangedFiles(false)
+	say(commitMessage)
+	return commitMessage
 }
 
 func getCachedChanges() string {
@@ -75,7 +77,7 @@ func done() {
 	if hasMobbingBranchOrigin() {
 		if !isNothingToCommit() {
 			git("add", "--all")
-			git("commit", "--message", "\""+commitMessage()+"\"")
+			git("commit", "--message", commitMessage())
 		}
 		git("push", settings.RemoteName, settings.BranchName)
 
