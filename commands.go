@@ -136,7 +136,7 @@ func hasMobbingBranchOrigin() bool {
 }
 
 func isLastChangeSecondsAgo() bool {
-	changes := git("--no-pager", "log", settings.RemoteName+".."+settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
+	changes := git("--no-pager", "log", settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	if numberOfLines < 1 {
