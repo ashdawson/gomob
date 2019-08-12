@@ -35,6 +35,6 @@ func getBranchDetails() (string, string) {
 	return strings.Trim(branchDetails[0], "\n"), strings.Trim(branchDetails[1], "\n")
 }
 
-func changedFiles() string {
+func getChangedFiles() string {
 	return git("diff", "--name-only")
 }

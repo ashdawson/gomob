@@ -49,7 +49,7 @@ func next() {
 		sayInfo("nothing was done, so nothing to commit")
 	} else {
 		git("add", "--all")
-		git("commit", "--message", "\""+settings.CommitMessage+"\"")
+		git("commit", "--message", "\""+commitMessage()+"\"")
 		git("push")
 		sayInfo("changes pushed to " + settings.RemoteName + "/" + settings.BranchName)
 	}
@@ -57,6 +57,10 @@ func next() {
 	if getGitUserName() == showNext() {
 		notif.Notify(showNext() + " is next.")
 	}
+}
+
+func commitMessage() string {
+	return settings.CommitMessage + getChangedFiles()
 }
 
 func getChangesOfLastCommit() string {
@@ -78,7 +82,7 @@ func done() {
 	if hasMobbingBranchOrigin() {
 		if !isNothingToCommit() {
 			git("add", "--all")
-			git("commit", "--message", "\""+settings.CommitMessage+"\"")
+			git("commit", "--message", "\""+commitMessage()+"\"")
 		}
 		git("push", settings.RemoteName, settings.BranchName)
 
