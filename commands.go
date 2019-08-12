@@ -56,7 +56,7 @@ func next() {
 }
 
 func commitMessage() string {
-	return settings.CommitMessage + getChangedFiles(false)
+	return settings.CommitMessage + getModifiedFiles()
 }
 
 func getCachedChanges() string {
@@ -173,7 +173,12 @@ func openFiles() {
 	if runtime.GOOS == "windows" {
 		app = app + ".exe"
 	}
-	exec.Command(app + getChangedFiles(true))
+
+	//fileLocation := file
+	//if withDirectory {
+	//	fileLocation = getCurrentDir() + "\\" + file
+	//}
+	exec.Command(app + getModifiedFiles())
 }
 
 func getCurrentDir() string {
