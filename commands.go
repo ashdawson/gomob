@@ -10,6 +10,8 @@ var debug = false
 
 func startSession() {
 	sayInfo("session started")
+	startTimer(settings.TimeLimit)
+
 	if !isNothingToCommit() {
 		notif.Notify("You have uncommitted changes")
 		return
