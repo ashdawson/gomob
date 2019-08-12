@@ -3,12 +3,11 @@ package main
 import (
 	"encoding/json"
 	"github.com/ashdawson/gomob/notif"
-	"strconv"
 	"strings"
 	"time"
 )
 
-var debug = true
+var debug = false
 
 func join() {
 	if !isLastChangeSecondsAgo() {
@@ -113,8 +112,6 @@ func done() {
 func status() {
 	if isMobbing() {
 		sayInfo("mobbing in progress")
-		output := git("--no-pager", "log", settings.BranchName, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
-		say(output)
 	} else {
 		sayInfo("you aren't mobbing right now")
 	}
@@ -156,21 +153,14 @@ func showNext() {
 	changes := strings.TrimSpace(git("--no-pager", "log", settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
-	if debug {
-		say("there have been " + strconv.Itoa(numberOfLines) + " changes")
-	}
 	gitUserName := getGitUserName()
-	if debug {
-		say("current git user.name is '" + gitUserName + "'")
-	}
 	if numberOfLines < 1 {
 		return
 	}
 	var history = ""
 	for i := 0; i < len(lines); i++ {
 		if lines[i] == gitUserName && i > 0 {
-			sayInfo("Committers after your last commit: " + history)
-			sayInfo("***" + lines[i-1] + "*** is (probably) next.")
+			notif.Notify(lines[i-1] + " is (probably) next.")
 			return
 		}
 		if history != "" {
