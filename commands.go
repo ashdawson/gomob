@@ -10,9 +10,6 @@ import (
 var debug = false
 
 func join() {
-	if !isLastChangeSecondsAgo() {
-		sayInfo("Actively waiting for new remote commit...")
-	}
 	for !isLastChangeSecondsAgo() {
 		time.Sleep(time.Second)
 		git("pull")
@@ -68,7 +65,7 @@ func next() {
 		git("commit", "--message", "\""+settings.CommitMessage+"\"")
 		git("push")
 	}
-	showNext()
+	notif.Notify(showNext() + " is (probably) next.")
 }
 
 func getChangesOfLastCommit() string {
@@ -149,25 +146,25 @@ func isLastChangeSecondsAgo() bool {
 	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
 }
 
-func showNext() {
+func showNext() string {
 	changes := strings.TrimSpace(git("--no-pager", "log", settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	gitUserName := getGitUserName()
 	if numberOfLines < 1 {
-		return
+		return ""
 	}
 	var history = ""
 	for i := 0; i < len(lines); i++ {
 		if lines[i] == gitUserName && i > 0 {
-			notif.Notify(lines[i-1] + " is (probably) next.")
-			return
+			return lines[i-1]
 		}
 		if history != "" {
 			history = ", " + history
 		}
 		history = lines[i] + history
 	}
+	return ""
 }
 
 func config() {

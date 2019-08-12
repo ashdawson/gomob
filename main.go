@@ -6,6 +6,4 @@ var wg = &sync.WaitGroup{}
 
 func main() {
 	start()
-
-	for{}
 }

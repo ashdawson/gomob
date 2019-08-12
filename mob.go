@@ -38,5 +38,6 @@ func runCommands() {
 			fmt.Println("OOPS")
 		}
 	}
+	checkStatus()
 	wg.Wait()
 }
