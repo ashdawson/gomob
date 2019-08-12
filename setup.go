@@ -18,6 +18,7 @@ type Settings struct {
 	BranchName     string `json:"BranchName"`
 	RemoteName     string `json:"RemoteName"`
 	CommitMessage  string `json:"CommitMessage"`
+	IDE            string `json:"IDE"`
 	TimeLimit      int
 }
 
@@ -43,6 +44,7 @@ func createSettings() {
 		branchName,
 		remoteName,
 		"WIP - [MOB] ",
+		"PHPSTORM",
 		15,
 	}
 	saveSettings()

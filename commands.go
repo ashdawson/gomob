@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"github.com/ashdawson/gomob/notif"
+	"os"
 	"strings"
 )
 
 var debug = false
 
 func startSession() {
+	//openFiles()
 	sayInfo("session started")
 	startTimer(settings.TimeLimit)
 
@@ -170,4 +172,18 @@ func help() {
 	say("\tmob status \t# show status of mob session")
 	say("\tmob --help \t# prints this help")
 	say("\tmob --version \t# prints the version")
+}
+//
+//func openFiles() {
+//	app := "phpstorm"
+//	if runtime.GOOS == "windows" {
+//		app = app + ".exe"
+//	}
+//	fmt.Sprintf("%s ", app, )
+//}
+
+func getCurrentDir() string {
+	dir, err := os.Getwd()
+	check(err)
+	return dir
 }

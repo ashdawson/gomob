@@ -36,5 +36,6 @@ func getBranchDetails() (string, string) {
 }
 
 func getChangedFiles() string {
-	return git("diff", "--name-only")
+	fileNames := git("diff", "--name-only")
+	return fileNames
 }
