@@ -2,10 +2,7 @@ package main
 
 import (
 	"fmt"
-	"sync"
 )
-
-var wg = &sync.WaitGroup{}
 
 func start() {
 	setup()

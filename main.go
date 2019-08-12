@@ -1,10 +1,11 @@
 package main
 
-func main() {
-	go forever()
-	start()
-}
+import "sync"
 
-func forever() {
-	wg.Add(1)
+var wg = &sync.WaitGroup{}
+
+func main() {
+	start()
+
+	for{}
 }
