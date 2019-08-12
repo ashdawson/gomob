@@ -1,13 +1,17 @@
 package command
 
+import (
+	"flag"
+	"fmt"
+)
+
 // Read reads the command line
 func Read() {
-	//startString := flag.String("start", clock.CurrentDate(), "a date string DD-MM-YYYY")
-	//flag.Parse()
-	//
-	//log.Printf("Using start date %v\n", *startString)
-	//StartDate = clock.CreateDate(startString)
-	//if len(flag.Args()) > 0 {
-	//	fmt.Println("No command line options were found for: ", flag.Args())
-	//}
+	startString := flag.String("ide", "", "the IDE you are currently using")
+	flag.Parse()
+
+	fmt.Println(startString)
+	if len(flag.Args()) > 0 {
+		fmt.Println("No command line options were found for: ", flag.Args())
+	}
 }

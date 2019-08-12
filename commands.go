@@ -29,13 +29,6 @@ func startSession() {
 		git("branch", "-D", settings.BranchName)
 		git("checkout", settings.BranchName)
 		git("branch", "--set-upstream-to="+getBranch(), settings.BranchName)
-	} else if !hasMobbingBranch() && !hasMobbingBranchOrigin() {
-		sayInfo("create " + settings.BranchName + " from " + settings.BaseBranchName)
-		git("checkout", settings.BaseBranchName)
-		git("merge", getBranch(), "--ff-only")
-		git("branch", settings.BranchName)
-		git("checkout", settings.BranchName)
-		git("push", "--set-upstream", settings.RemoteName, settings.BranchName)
 	} else {
 		sayInfo("joining mob session")
 		git("checkout", settings.BranchName)
@@ -64,7 +57,7 @@ func next() {
 }
 
 func commitMessage() string {
-	return settings.CommitMessage + getChangedFiles()
+	return settings.CommitMessage + getChangedFiles(false)
 }
 
 func getCachedChanges() string {
@@ -162,11 +155,10 @@ func config() {
 
 func help() {
 	say("usage")
-	say("\tmob [s]tart \t# start mobbing as typist")
+	say("\tmob [s]tart \t# start mobbing")
 	say("\tmob [j]oin \t# like start but waits for recent commit")
 	say("\tmob [n]ext \t# hand over to next typist")
 	say("\tmob [d]one \t# finish mob session")
-	say("\tmob [r]eset \t# resets any unfinished mob session")
 	say("\tmob status \t# show status of mob session")
 	say("\tmob --help \t# prints this help")
 	say("\tmob --version \t# prints the version")
@@ -177,7 +169,7 @@ func openFiles() {
 	if runtime.GOOS == "windows" {
 		app = app + ".exe"
 	}
-	exec.Command(app + getChangedFiles())
+	exec.Command(app + getChangedFiles(true))
 }
 
 func getCurrentDir() string {

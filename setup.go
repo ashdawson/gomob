@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/ashdawson/gomob/command"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -24,7 +23,7 @@ type Settings struct {
 
 func setup() {
 	checkSettings()
-	command.Read()
+	//command.Read()
 	getArguments()
 }
 

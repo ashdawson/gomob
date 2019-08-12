@@ -39,12 +39,15 @@ func getBranch() string {
 	return settings.RemoteName + "/" + settings.BranchName
 }
 
-func getChangedFiles() string {
+func getChangedFiles(withDirectory bool) string {
 	fileNames := strings.Split(git("diff", "--name-only"), "\n")
 	fileString := ""
 	for _, file := range fileNames {
 		if len(file) > 0 {
-			fileLocation := getCurrentDir() + "\\" + file
+			fileLocation := file
+			if withDirectory {
+				fileLocation = getCurrentDir() + "\\" + file
+			}
 			fileString = fileString + fileLocation + ", "
 		}
 	}
