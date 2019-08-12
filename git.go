@@ -39,14 +39,21 @@ func getBranch() string {
 	return settings.RemoteName + "/" + settings.BranchName
 }
 
+func getLastCommitMessage() string {
+	message := git("log", "-1", "--pretty=%B")
+	message = strings.Replace(message, settings.CommitMessage, "", -1)
+	message = strings.ReplaceAll(message, "\n", "")
+	return message
+}
+
 func getModifiedFiles() string {
 	fileNames := strings.Split(git("diff", "--name-only"), "\n")
 	fileString := ""
 	for _, file := range fileNames {
 		if len(file) > 0 {
-			fileString = fileString + file + ", "
+			fileString = fileString + file + " "
 		}
 	}
-	fileString = strings.TrimSuffix(fileString, ", ")
+	fileString = strings.TrimSuffix(fileString, " ")
 	return fileString
 }

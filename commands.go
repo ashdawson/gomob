@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ashdawson/gomob/notif"
 	"os"
 	"os/exec"
@@ -22,6 +23,7 @@ func startSession() {
 }
 
 func next() {
+	join()
 	if !isMobbing() {
 		sayError("you aren't mobbing")
 		return
@@ -125,16 +127,20 @@ func help() {
 }
 
 func openFiles() {
+	// Currently only supports PHPStorm or VSCode
 	app := strings.ToLower(settings.IDE)
+
 	if runtime.GOOS == "windows" {
 		app = app + ".exe"
 	}
 
-	//fileLocation := file
-	//if withDirectory {
-	//	fileLocation = getCurrentDir() + "\\" + file
-	//}
-	exec.Command(app + getModifiedFiles())
+	if app == "vscode" {
+		app = "code -g"
+	}
+
+	fmt.Println(app + " " + getLastCommitMessage())
+
+	exec.Command(app + " " + getLastCommitMessage())
 }
 
 func getCurrentDir() string {
