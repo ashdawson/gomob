@@ -49,8 +49,12 @@ func next() {
 		git("add", "--all")
 		git("commit", "--message", "\""+settings.CommitMessage+"\"")
 		git("push")
+		sayInfo("changes pushed to " + settings.BranchName)
 	}
-	notif.Notify(showNext() + " is (probably) next.")
+
+	if getGitUserName() == showNext() {
+		notif.Notify(showNext() + " is next.")
+	}
 }
 
 func getChangesOfLastCommit() string {
