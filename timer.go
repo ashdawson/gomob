@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ashdawson/gomob/notif"
 	"strconv"
 	"time"
@@ -31,8 +30,8 @@ func join() {
 		defer wg.Done()
 		time.Sleep(1 * time.Second)
 		if getGitUserName() == showNext() && !isMobbing() && isLastChangeSecondsAgo() {
-			fmt.Println("It is your turn to start")
-			git("pull")
+			notif.Notify("It is your turn to start")
+			startSession()
 		}
 		join()
 	}()

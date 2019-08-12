@@ -9,7 +9,7 @@ import (
 var debug = false
 
 func startSession() {
-	sayInfo("mob session started")
+	sayInfo("session started")
 	if !isNothingToCommit() {
 		notif.Notify("You have uncommitted changes")
 		return
@@ -49,7 +49,7 @@ func next() {
 		git("add", "--all")
 		git("commit", "--message", "\""+settings.CommitMessage+"\"")
 		git("push")
-		sayInfo("changes pushed to " + settings.BranchName)
+		sayInfo("changes pushed to " + settings.RemoteName + "/" + settings.BranchName)
 	}
 
 	if getGitUserName() == showNext() {
