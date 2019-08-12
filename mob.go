@@ -22,7 +22,6 @@ func runCommands() {
 			startSession()
 			status()
 			startTimer(settings.TimeLimit)
-			wg.Wait()
 			break
 		case "join":
 			startSession()
@@ -42,4 +41,5 @@ func runCommands() {
 			fmt.Println("OOPS")
 		}
 	}
+	wg.Wait()
 }

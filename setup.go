@@ -17,7 +17,7 @@ type Settings struct {
 	BaseRemoteName string `json:"BaseRemoteName"`
 	BranchName     string `json:"BranchName"`
 	RemoteName     string `json:"RemoteName"`
-	CommitMessage string `json:"CommitMessage"`
+	CommitMessage  string `json:"CommitMessage"`
 	TimeLimit      int
 }
 
@@ -36,12 +36,12 @@ func check(e error) {
 func createSettings() {
 	_, err := os.Create(mobSettingsFile)
 	check(err)
-	branchDetails := strings.Split(silentgit("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"), "/")
-	settings = Settings {
+	branchName, remoteName := getBranchDetails()
+	settings = Settings{
 		"master",
 		"origin",
-		strings.Trim(branchDetails[1], "\n"),
-		strings.Trim(branchDetails[0], "\n"),
+		branchName,
+		remoteName,
 		"WIP - [MOB] ",
 		15,
 	}

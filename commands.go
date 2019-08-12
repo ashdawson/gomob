@@ -2,10 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/ashdawson/gomob/notif"
-	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +47,7 @@ func startSession() {
 		git("branch", "--set-upstream-to="+settings.RemoteName+"/"+settings.BranchName, settings.BranchName)
 	} else {
 		sayInfo("purging local branch and start new " + settings.BranchName + " branch from " + settings.BaseBranchName)
-		git("branch", "-D", settings.BranchName) // check if unmerged commits
+		git("branch", "-D", settings.BranchName)
 		git("checkout", settings.BaseBranchName)
 		git("merge", settings.RemoteName+"/"+settings.BaseBranchName, "--ff-only")
 		git("branch", settings.BranchName)
@@ -70,21 +67,17 @@ func next() {
 	} else {
 		git("add", "--all")
 		git("commit", "--message", "\""+settings.CommitMessage+"\"")
-		changes := getChangesOfLastCommit()
-		git("push", settings.RemoteName, settings.BranchName)
-		say(changes)
+		git("push")
 	}
 	showNext()
-
-	git("checkout", settings.BranchName)
 }
 
 func getChangesOfLastCommit() string {
-	return strings.TrimSpace(silentgit("diff", "HEAD^1", "--stat"))
+	return strings.TrimSpace(git("diff", "HEAD^1", "--stat"))
 }
 
 func getCachedChanges() string {
-	return strings.TrimSpace(silentgit("diff", "--cached", "--stat"))
+	return strings.TrimSpace(git("diff", "--cached", "--stat"))
 }
 
 func done() {
@@ -120,7 +113,7 @@ func done() {
 func status() {
 	if isMobbing() {
 		sayInfo("mobbing in progress")
-		output := silentgit("--no-pager", "log", settings.BranchName, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
+		output := git("--no-pager", "log", settings.BranchName, "--pretty=format:%h %cr <%an>", "--abbrev-commit")
 		say(output)
 	} else {
 		sayInfo("you aren't mobbing right now")
@@ -128,33 +121,28 @@ func status() {
 }
 
 func isNothingToCommit() bool {
-	output := silentgit("status", "--short")
+	output := git("status", "--short")
 	isMobbing := len(strings.TrimSpace(output)) == 0
 	return isMobbing
 }
 
 func isMobbing() bool {
-	output := silentgit("branch")
+	output := git("branch")
 	return strings.Contains(output, "* "+settings.BranchName)
 }
 
 func hasMobbingBranch() bool {
-	output := silentgit("branch")
+	output := git("branch")
 	return strings.Contains(output, "  "+settings.BranchName) || strings.Contains(output, "* "+settings.BranchName)
 }
 
 func hasMobbingBranchOrigin() bool {
-	output := silentgit("branch", "--remotes")
+	output := git("branch", "--remotes")
 	return strings.Contains(output, "  "+settings.RemoteName+"/"+settings.BranchName)
 }
 
-
-func getGitUserName() string {
-	return strings.TrimSpace(silentgit("config", "--get", "user.name"))
-}
-
 func isLastChangeSecondsAgo() bool {
-	changes := silentgit("--no-pager", "log", settings.RemoteName+".."+settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
+	changes := git("--no-pager", "log", settings.RemoteName+".."+settings.BranchName, "--pretty=format:%cr", "--abbrev-commit")
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	if numberOfLines < 1 {
@@ -165,7 +153,7 @@ func isLastChangeSecondsAgo() bool {
 }
 
 func showNext() {
-	changes := strings.TrimSpace(silentgit("--no-pager", "log", settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
+	changes := strings.TrimSpace(git("--no-pager", "log", settings.BranchName, "--pretty=format:%an", "--abbrev-commit"))
 	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
 	numberOfLines := len(lines)
 	if debug {
@@ -208,42 +196,4 @@ func help() {
 	say("\tmob status \t# show status of mob session")
 	say("\tmob --help \t# prints this help")
 	say("\tmob --version \t# prints the version")
-}
-
-func silentgit(args ...string) string {
-	command := exec.Command("git", args...)
-	if debug {
-		fmt.Println(command.Args)
-	}
-	outputBinary, err := command.CombinedOutput()
-	output := string(outputBinary)
-	if debug {
-		fmt.Println(output)
-	}
-	if err != nil {
-		fmt.Println(output)
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	return output
-}
-
-func git(args ...string) string {
-	command := exec.Command("git", args...)
-	if debug {
-		fmt.Println(command.Args)
-	}
-	outputBinary, err := command.CombinedOutput()
-	output := string(outputBinary)
-	if debug {
-		fmt.Println(output)
-	}
-	if err != nil {
-		sayError(command.Args)
-		sayError(err)
-		os.Exit(1)
-	}
-	sayOkay(command.Args)
-
-	return output
 }
