@@ -9,6 +9,7 @@ import (
 var debug = false
 
 func startSession() {
+	sayInfo("mob session started")
 	if !isNothingToCommit() {
 		notif.Notify("You have uncommitted changes")
 		return
@@ -87,14 +88,6 @@ func done() {
 		git("checkout", settings.BranchName)
 		git("branch", "-D", settings.BranchName)
 		sayInfo("someone else already ended your mob session")
-	}
-}
-
-func status() {
-	if isMobbing() {
-		sayInfo("mobbing in progress")
-	} else {
-		sayInfo("you aren't mobbing right now")
 	}
 }
 

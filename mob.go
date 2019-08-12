@@ -18,7 +18,6 @@ func runCommands() {
 			break
 		case "start":
 			startSession()
-			status()
 			startTimer(settings.TimeLimit)
 			break
 		case "next":
