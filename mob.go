@@ -20,6 +20,9 @@ func runCommands() {
 	case "start":
 		startSession()
 		break
+	case "create":
+		startSession()
+		break
 	case "join":
 		join()
 		break
