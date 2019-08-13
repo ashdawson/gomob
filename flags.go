@@ -22,6 +22,8 @@ func readCommandLineArguments() {
 	if len(flag.Args()) > 0 {
 		fmt.Println("No command line options were found for: ", flag.Args())
 	}
+
+	saveSettings()
 }
 
 func getStartCommand() string {
