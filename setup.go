@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/ashdawson/gomob/notif"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -37,13 +38,14 @@ func createSettings() {
 	_, err := os.Create(mobSettingsFile)
 	check(err)
 	remoteName, branchName := getBranchDetails()
+	getIDE, _ := notif.List("Please select your IDE", []string{"phpstorm", "vscode"})
 	settings = Settings{
 		"master",
 		"origin",
 		branchName,
 		remoteName,
 		"WIP - [MOB] ",
-		"PHPSTORM",
+		getIDE,
 		15,
 	}
 	saveSettings()

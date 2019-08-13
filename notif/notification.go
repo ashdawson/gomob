@@ -29,9 +29,14 @@ func Question(message string) bool {
 	return ok
 }
 
-func Reminder(message string, list []string) (string, bool) {
+func List(message string, list []string) (string, bool) {
 	selection, ok, err := dlgs.List("List", message, list)
 	check(err)
 	return selection, ok
 }
 
+func Entry(message string, defaultText string) string {
+	response, _, err := dlgs.Entry("Entry", message, defaultText)
+	check(err)
+	return response
+}

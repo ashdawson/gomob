@@ -16,7 +16,7 @@ func startTimer(reminderTime int) {
 		if swap {
 			next()
 		} else {
-			var selected, _ = notif.Reminder("Remind me again in:", []string{"5", "10", "15"})
+			var selected, _ = notif.List("Remind me again in:", []string{"5", "10", "15"})
 			reminderTime, err := strconv.Atoi(selected)
 			check(err)
 			startTimer(reminderTime)

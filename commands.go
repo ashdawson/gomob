@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/ashdawson/gomob/notif"
 	"os"
 	"os/exec"
@@ -29,7 +28,7 @@ func next() {
 		return
 	}
 
-	if isNothingToCommit() {
+	if !hasCommits() {
 		sayInfo("nothing was done, so nothing to commit")
 	} else {
 		commit()
@@ -46,46 +45,10 @@ func commitMessage() string {
 	return settings.CommitMessage + getModifiedFiles()
 }
 
-func getCachedChanges() string {
-	return strings.TrimSpace(git("diff", "--cached", "--stat"))
-}
-
 func commit() {
 	message := commitMessage()
 	git("add", "--all")
 	git("commit", "--message", message)
-}
-
-func isNothingToCommit() bool {
-	output := git("status", "--short")
-	isMobbing := len(strings.TrimSpace(output)) == 0
-	return isMobbing
-}
-
-func isMobbing() bool {
-	output := git("branch")
-	return strings.Contains(output, "* "+settings.BranchName)
-}
-
-func hasMobbingBranch() bool {
-	output := git("branch")
-	return strings.Contains(output, "  "+settings.BranchName) || strings.Contains(output, "* "+settings.BranchName)
-}
-
-func hasMobbingBranchOrigin() bool {
-	output := git("branch", "--remotes")
-	return strings.Contains(output, "  "+getBranch())
-}
-
-func isLastChangeSecondsAgo() bool {
-	changes := git("--no-pager", "log", getBranch(), "--pretty=format:%cr", "--abbrev-commit")
-	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
-	numberOfLines := len(lines)
-	if numberOfLines < 1 {
-		return true
-	}
-
-	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
 }
 
 func showNext() string {
@@ -128,24 +91,27 @@ func help() {
 
 func openFiles() {
 	// Currently only supports PHPStorm or VSCode
-	supportedIDE := map[string]bool {
+	supportedIDE := map[string]bool{
 		"phpstorm": true,
-		"vscode": true,
+		"vscode":   true,
 	}
-	if !supportedIDE[settings.IDE] {
-		sayInfo(fmt.Sprintf("%s is not a supported IDE", settings.IDE))
-	} else {
-		app := strings.ToLower(settings.IDE)
-
-		if runtime.GOOS == "windows" {
+	app := strings.ToLower(settings.IDE)
+	if len(getLastCommitMessage()) > 0 && supportedIDE[app] {
+		if runtime.GOOS == "windows" && app == "phpstorm" {
 			app = app + ".exe"
 		}
 
+		var command *exec.Cmd
 		if app == "vscode" {
-			app = "code -g"
+			app = "code"
 		}
-		sayInfo(app + " " + getLastCommitMessage())
-		exec.Command(app + " " + getLastCommitMessage())
+		command = exec.Command(app, getLastCommitMessage()...)
+		err := command.Run()
+		if err != nil {
+			sayError(command.Args)
+			sayError(err)
+			os.Exit(1)
+		}
 	}
 }
 
