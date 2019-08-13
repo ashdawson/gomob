@@ -5,7 +5,6 @@ import (
 	"github.com/ashdawson/gomob/notif"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 var argsMap = map[string]string{}
@@ -24,8 +23,7 @@ type Settings struct {
 
 func setup() {
 	checkSettings()
-	//command.Read()
-	getArguments()
+	readCommandLineArguments()
 }
 
 func check(e error) {
@@ -58,7 +56,8 @@ func saveSettings() {
 }
 
 func checkSettings() {
-	_, err := os.Open(mobSettingsFile)
+	file, err := os.Open(mobSettingsFile)
+	file.Close()
 	if err != nil {
 		createSettings()
 	} else {
@@ -74,21 +73,6 @@ func readSettings() {
 	check(err)
 }
 
-func (currentSettings *Settings) updateSetting(setting string, value string) {
+func (settings *Settings) updateSetting(setting string, value string) {
 	saveSettings()
-}
-
-func getArguments() {
-	for i := 1; i < len(os.Args); i++ {
-		if strings.Contains(os.Args[i], "--") {
-			if _, ok := argsMap[os.Args[i]]; !ok {
-				var hasValue = strings.Index(os.Args[i], "=")
-				if hasValue > 0 {
-					argsMap[os.Args[i][2:hasValue]] = os.Args[i][hasValue:]
-				} else {
-					argsMap[os.Args[i][2:]] = ""
-				}
-			}
-		}
-	}
 }

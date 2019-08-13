@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var timerOnly bool = false
+
 func startTimer(reminderTime int) {
 	wg.Add(1)
 	go func() {

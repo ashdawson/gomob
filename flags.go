@@ -1,0 +1,34 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
+// Read reads the command line
+func readCommandLineArguments() {
+	startCommand = getStartCommand()
+	flag.IntVar(&settings.TimeLimit, "time_limit", settings.TimeLimit, "mob session time")
+	flag.BoolVar(&timerOnly, "timer", timerOnly, "mob session time")
+	flag.StringVar(&settings.IDE, "ide", settings.IDE, "ide used to open files from commit messages")
+	flag.StringVar(&settings.BranchName, "branch", settings.BranchName, "current branch you are working on")
+	flag.StringVar(&settings.RemoteName, "remote", settings.RemoteName, "the name of the remote")
+	flag.StringVar(&settings.BaseBranchName, "base_branch", settings.BaseBranchName, "current base branch you are working on")
+	flag.StringVar(&settings.BaseRemoteName, "base_remote", settings.BaseRemoteName, "the name of the base remote")
+	flag.StringVar(&settings.CommitMessage, "commit_message", settings.CommitMessage, "commit message appended to start of each commit")
+
+	flag.Parse()
+	if len(flag.Args()) > 0 {
+		fmt.Println("No command line options were found for: ", flag.Args())
+	}
+}
+
+func getStartCommand() string {
+	args := os.Args
+	if len(args) >= 1 {
+		os.Args = os.Args[1:]
+		return args[1]
+	}
+	return "start"
+}
