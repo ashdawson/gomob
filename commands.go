@@ -12,10 +12,12 @@ import (
 var debug = false
 
 func startSession() {
-	openFiles()
+	if !isTimerOnly {
+		openFiles()
 
-	git("fetch", "--prune")
-	git("pull")
+		git("fetch", "--prune")
+		git("pull")
+	}
 
 	sayInfo("session started")
 	startTimer(settings.TimeLimit)
@@ -23,17 +25,19 @@ func startSession() {
 
 func next() {
 	join()
-	if !isMobbing() {
-		sayError("you aren't mobbing")
-		return
-	}
+	if !isTimerOnly {
+		if !isMobbing() {
+			sayError("you aren't mobbing")
+			return
+		}
 
-	if !hasCommits() {
-		sayInfo("nothing was done, so nothing to commit")
-	} else {
-		commit()
-		git("push")
-		sayInfo("changes pushed to " + getBranch())
+		if !hasCommits() {
+			sayInfo("nothing was done, so nothing to commit")
+		} else {
+			commit()
+			git("push")
+			sayInfo("changes pushed to " + getBranch())
+		}
 	}
 
 	if getGitUserName() == showNext() {

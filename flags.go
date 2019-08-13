@@ -10,7 +10,7 @@ import (
 func readCommandLineArguments() {
 	startCommand = getStartCommand()
 	flag.IntVar(&settings.TimeLimit, "time_limit", settings.TimeLimit, "mob session time")
-	flag.BoolVar(&timerOnly, "timer", timerOnly, "mob session time")
+	flag.BoolVar(&isTimerOnly, "timer", isTimerOnly, "set if you only want to use the app as a timer")
 	flag.StringVar(&settings.IDE, "ide", settings.IDE, "ide used to open files from commit messages")
 	flag.StringVar(&settings.BranchName, "branch", settings.BranchName, "current branch you are working on")
 	flag.StringVar(&settings.RemoteName, "remote", settings.RemoteName, "the name of the remote")
