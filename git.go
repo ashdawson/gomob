@@ -89,14 +89,8 @@ func hasMobbingBranchOrigin() bool {
 }
 
 func isLastChangeSecondsAgo() bool {
-	changes := git("--no-pager", "log", getBranch(), "--pretty=format:%cr", "--abbrev-commit")
-	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
-	numberOfLines := len(lines)
-	if numberOfLines < 1 {
-		return true
-	}
-
-	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
+	recentlyUpdated := git("--no-pager", "log", "-1", "--pretty=format:%cr", "--abbrev-commit")
+	return strings.Contains(recentlyUpdated, "seconds ago") || strings.Contains(recentlyUpdated, "second ago")
 }
 
 func (settings *Settings) updateBranch() {
