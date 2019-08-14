@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/ashdawson/gomob/clock"
 	"github.com/ashdawson/gomob/notif"
 	"os"
 	"os/exec"
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-var debug = false
+var debug = true
 
 func startSession() {
 	if !isTimerOnly {
@@ -20,6 +21,7 @@ func startSession() {
 	}
 
 	sayInfo("session started")
+	sessionStartTime = clock.New().Now()
 	startTimer(settings.TimeLimit)
 }
 

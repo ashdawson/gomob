@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -56,6 +57,7 @@ func getLastCommitMessage() []string {
 func getModifiedFiles() string {
 	fileNames := strings.Split(git("diff", "--name-only"), "\n")
 	fileString := ""
+	getLastFileChanges(fileNames)
 	for _, file := range fileNames {
 		if len(file) > 0 {
 			fileString = fileString + file + " "
@@ -95,4 +97,31 @@ func isLastChangeSecondsAgo() bool {
 	}
 
 	return strings.Contains(lines[0], "seconds ago") || strings.Contains(lines[0], "second ago")
+}
+
+func (settings *Settings) updateBranch() {
+	remoteName, branchName := getBranchDetails()
+	if settings.RemoteName != remoteName || settings.BranchName != branchName {
+		settings.RemoteName = remoteName
+		settings.BranchName = branchName
+
+		sayInfo(fmt.Sprintf("Now tracking changes to: %s/%s", settings.RemoteName, settings.BranchName))
+		saveSettings()
+	}
+}
+
+func getLastFileChanges(filenames []string) {
+	//fmt.Println(sessionStartTime)
+	fmt.Println(filenames)
+	for i := range filenames {
+		fmt.Println(filenames[i])
+		for minute := 1; minute < settings.TimeLimit; minute++ {
+			blame := git("blame","--since=" + strconv.Itoa(minute) + ".seconds",filenames[i],"|","grep","-v","'^\\^'")
+
+			if len(blame) > 0 {
+				fmt.Println(blame)
+				break
+			}
+		}
+	}
 }

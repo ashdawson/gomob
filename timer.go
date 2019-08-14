@@ -7,11 +7,13 @@ import (
 )
 
 var isTimerOnly = false
+var sessionStartTime time.Time
 
 func startTimer(reminderTime int) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		settings.updateBranch()
 		time.Sleep(time.Duration(reminderTime) * time.Minute)
 		notif.Notify("Your mob time has ended")
 		var swap = notif.Question("Your mob time has ended. Are you ready to swap?")
@@ -30,6 +32,7 @@ func join() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		settings.updateBranch()
 		time.Sleep(1 * time.Second)
 		if getGitUserName() == showNext() && !isMobbing() && isLastChangeSecondsAgo() {
 			notif.Notify("It is your turn to start")

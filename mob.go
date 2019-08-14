@@ -8,7 +8,9 @@ var startCommand string
 
 func start() {
 	setup()
-	runCommands()
+	getLastFileChanges([]string{"git.go"})
+
+	//runCommands()
 }
 
 func runCommands() {
