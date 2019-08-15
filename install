@@ -1,0 +1,3 @@
+target=/usr/local/bin/
+go build && cp -f gomob $target
+echo "installed 'gomob' to $target"
