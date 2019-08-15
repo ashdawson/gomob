@@ -24,6 +24,9 @@ func runCommands() {
 	case "join":
 		joinSession()
 		break
+	case "next":
+		next()
+		break
 	case "help":
 		help()
 		break
@@ -53,23 +56,14 @@ func joinSession() {
 
 func next() {
 	join()
-	if !isTimerOnly {
-		if !isMobbing() {
-			sayError("you aren't mobbing")
-			return
-		}
-
-		if !hasCommits() {
-			sayInfo("nothing was done, so nothing to commit")
-		} else {
-			commit()
-			git("push")
-			sayInfo("changes pushed to " + getBranch())
-		}
+	if !isTimerOnly && hasCommits() {
+		commit()
+		git("push")
+		sayInfo("Changes pushed to " + getBranch())
 	}
 
-	if getGitUserName() == showNext() {
-		notif.Notify(showNext() + " is next.")
+	if getGitUserName() == getNextAuthor() {
+		notif.Notify(getNextAuthor() + " is next.")
 	}
 }
 

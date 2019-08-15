@@ -12,7 +12,7 @@ type Committer struct {
 	Count int
 }
 
-func showNext() string {
+func getNextAuthor() string {
 	committerStorage := make(map[string]Committer)
 	committers := getCommitters()
 
