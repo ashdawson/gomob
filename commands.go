@@ -41,7 +41,7 @@ func startSession() {
 		git("pull")
 	}
 
-	sayInfo("session started")
+	sayInfo(fmt.Sprintf("Session started (%d minutes)", settings.TimeLimit))
 	sessionStartTime = clock.New().Now()
 	startTimer(settings.TimeLimit)
 }
