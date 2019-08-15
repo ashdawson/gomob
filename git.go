@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
+
+var lastBranch string
+var changeList []string
 
 func git(args ...string) string {
 	command := exec.Command("git", args...)
@@ -21,13 +23,17 @@ func git(args ...string) string {
 	if err != nil {
 		sayError(command.Args)
 		sayError(err)
-		os.Exit(1)
+		exit()
 	}
 	return output
 }
 
 func getGitUserName() string {
 	return strings.TrimSpace(git("config", "--get", "user.name"))
+}
+
+func getGetUserEmail() string {
+	return strings.TrimSpace(git("config", "--get", "user.email"))
 }
 
 func getBranchDetails() (string, string) {
@@ -67,6 +73,11 @@ func getModifiedFiles() string {
 	return fileString
 }
 
+func getCommitters() []string {
+	commits := strings.TrimSpace(git("--no-pager", "log", "-n", "10", getBranch(), "--since=1.days", "--pretty=format:%ae|%an"))
+	return strings.Split(strings.Replace(commits, "\r\n", "\n", -1), "\n")
+}
+
 func hasCommits() bool {
 	output := git("status", "--short")
 	isMobbing := len(strings.TrimSpace(output)) == 0
@@ -89,7 +100,7 @@ func hasMobbingBranchOrigin() bool {
 }
 
 func isLastChangeSecondsAgo() bool {
-	recentlyUpdated := git("--no-pager", "log", "-1", "--pretty=format:%cr", "--abbrev-commit")
+	recentlyUpdated := git("--no-pager", "log", getBranch(), "-1", "--pretty=format:%cr", "--abbrev-commit")
 	return strings.Contains(recentlyUpdated, "seconds ago") || strings.Contains(recentlyUpdated, "second ago")
 }
 
@@ -105,10 +116,7 @@ func (settings *Settings) updateBranch() {
 }
 
 func getLastFileChanges(filenames []string) {
-	//fmt.Println(sessionStartTime)
-	fmt.Println(filenames)
 	for i := range filenames {
-		fmt.Println(filenames[i])
 		for minute := 1; minute < settings.TimeLimit; minute++ {
 			blame := git("blame","--since=" + strconv.Itoa(minute) + ".seconds",filenames[i],"|","grep","-v","'^\\^'")
 
@@ -118,4 +126,14 @@ func getLastFileChanges(filenames []string) {
 			}
 		}
 	}
+}
+
+func commitMessage() string {
+	return settings.CommitMessage + getModifiedFiles()
+}
+
+func commit() {
+	message := commitMessage()
+	git("add", "--all")
+	git("commit", "--message", message)
 }

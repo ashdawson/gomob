@@ -18,18 +18,14 @@ type Settings struct {
 	RemoteName     string `json:"RemoteName"`
 	CommitMessage  string `json:"CommitMessage"`
 	IDE            string `json:"IDE"`
+	Mob            string `json:"Mob"`
 	TimeLimit      int
 }
 
 func setup() {
+	runChecks()
 	checkSettings()
 	readCommandLineArguments()
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
 
 func createSettings() {
@@ -44,6 +40,7 @@ func createSettings() {
 		remoteName,
 		"WIP - [MOB] ",
 		getIDE,
+		"",
 		15,
 	}
 	saveSettings()
@@ -75,4 +72,9 @@ func readSettings() {
 
 func (settings *Settings) updateSetting(setting string, value string) {
 	saveSettings()
+}
+
+func runChecks() {
+	_, err := os.Open(".git/info/exclude")
+	checkSay(err, "git has not been added to this directory")
 }

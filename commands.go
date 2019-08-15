@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/ashdawson/gomob/clock"
 	"github.com/ashdawson/gomob/notif"
 	"os"
@@ -10,7 +11,27 @@ import (
 	"strings"
 )
 
-var debug = true
+var debug = false
+
+func runCommands() {
+	switch startCommand {
+	case "config":
+		config()
+		break
+	case "start":
+		startSession()
+		break
+	case "join":
+		joinSession()
+		break
+	case "help":
+		help()
+		break
+	default:
+		fmt.Println("OOPS")
+	}
+	wg.Wait()
+}
 
 func startSession() {
 	if !isTimerOnly {
@@ -23,6 +44,11 @@ func startSession() {
 	sayInfo("session started")
 	sessionStartTime = clock.New().Now()
 	startTimer(settings.TimeLimit)
+}
+
+func joinSession() {
+	sayInfo("watching for changes to " + getBranch())
+	join()
 }
 
 func next() {
@@ -45,37 +71,6 @@ func next() {
 	if getGitUserName() == showNext() {
 		notif.Notify(showNext() + " is next.")
 	}
-}
-
-func commitMessage() string {
-	return settings.CommitMessage + getModifiedFiles()
-}
-
-func commit() {
-	message := commitMessage()
-	git("add", "--all")
-	git("commit", "--message", message)
-}
-
-func showNext() string {
-	changes := strings.TrimSpace(git("--no-pager", "log", getBranch(), "--pretty=format:%an", "--abbrev-commit"))
-	lines := strings.Split(strings.Replace(changes, "\r\n", "\n", -1), "\n")
-	numberOfLines := len(lines)
-	gitUserName := getGitUserName()
-	if numberOfLines < 1 {
-		return ""
-	}
-	var history = ""
-	for i := 0; i < len(lines); i++ {
-		if lines[i] == gitUserName && i > 0 {
-			return lines[i-1]
-		}
-		if history != "" {
-			history = ", " + history
-		}
-		history = lines[i] + history
-	}
-	return ""
 }
 
 func config() {
@@ -116,7 +111,7 @@ func openFiles() {
 		if err != nil {
 			sayError(command.Args)
 			sayError(err)
-			os.Exit(1)
+			exit()
 		}
 	}
 }

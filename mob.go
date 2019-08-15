@@ -1,41 +1,36 @@
 package main
 
-import (
-	"fmt"
-)
+import "strings"
 
 var startCommand string
 
-func start() {
-	setup()
-	getLastFileChanges([]string{"git.go"})
-
-	//runCommands()
+type Committer struct {
+	Name string
+	Email string
+	Count int
 }
 
-func runCommands() {
-	sayInfo("running command: " + startCommand)
-	switch startCommand {
-	case "config":
-		config()
-		break
-	case "start":
-		startSession()
-		break
-	case "create":
-		startSession()
-		break
-	case "join":
-		join()
-		break
-	case "next":
-		next()
-		break
-	case "help":
-		help()
-		break
-	default:
-		fmt.Println("OOPS")
+func showNext() string {
+	committersStorage := make(map[string]Committer)
+	committers := getCommitters()
+
+	for i := 0; i < len(committers); i++ {
+		details := strings.Split(committers[i], "|")
+		email := details[0]
+		name := details[1]
+		committer, exists := committersStorage[email];
+
+		if exists {
+			committer.Count++
+			committersStorage[email] = committer
+		} else {
+			committersStorage[email] = Committer{
+				Name: name,
+				Email: email,
+				Count: 1,
+			}
+		}
 	}
-	wg.Wait()
+
+	return ""
 }
