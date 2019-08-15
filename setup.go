@@ -30,18 +30,10 @@ func setup() {
 }
 
 func createSettings() {
-	_, err := os.Create(mobSettingsFile)
-	check(err)
 	remoteName, branchName := getBranchDetails()
 	var getIDE string
 	var getMob string
-	if notif.CanUse() {
-		getIDE, _ = notif.List("Please select your IDE", []string{"phpstorm", "vscode"})
-		getMob, _ = notif.MultiList("Please select your team", getPossibleTeam())
-	} else {
-		getIDE = AskInput("Pleases enter your IDE:", []string{"phpstorm", "vscode"})
-		getMob = AskInput("Please select your team:", getPossibleTeam())
-	}
+	getIDE, _ = notif.List("Please select your IDE", []string{"phpstorm", "vscode"})
 
 	settings = Settings{
 		"master",
@@ -52,8 +44,16 @@ func createSettings() {
 		getIDE,
 		getMob,
 		false,
-		15,
+		10,
 	}
+
+	possibleTeam := getPossibleTeam()
+	if len(possibleTeam) > 0 {
+		settings.Mob, _ = notif.MultiList("Please select your team", possibleTeam)
+	}
+
+	_, err := os.Create(mobSettingsFile)
+	check(err)
 
 	saveSettings()
 }
