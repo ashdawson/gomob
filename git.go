@@ -32,7 +32,7 @@ func getGitUserName() string {
 	return strings.TrimSpace(git("config", "--get", "user.name"))
 }
 
-func getGetUserEmail() string {
+func getGitUserEmail() string {
 	return strings.TrimSpace(git("config", "--get", "user.email"))
 }
 

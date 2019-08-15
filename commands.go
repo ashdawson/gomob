@@ -47,7 +47,7 @@ func startSession() {
 }
 
 func joinSession() {
-	sayInfo("watching for changes to " + getBranch())
+	sayInfo("Tracking changes to: " + getBranch())
 	join()
 }
 
