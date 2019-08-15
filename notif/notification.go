@@ -3,6 +3,7 @@ package notif
 import (
 	"github.com/gen2brain/beeep"
 	"github.com/gen2brain/dlgs"
+	"strings"
 )
 
 var appName = "GoMob"
@@ -35,8 +36,22 @@ func List(message string, list []string) (string, bool) {
 	return selection, ok
 }
 
+func MultiList(message string, list []string) (string, bool) {
+	selection, ok, err := dlgs.ListMulti("List", message, list)
+	check(err)
+	return strings.Join(selection, ","), ok
+}
+
 func Entry(message string, defaultText string) string {
 	response, _, err := dlgs.Entry("Entry", message, defaultText)
 	check(err)
 	return response
+}
+
+func CanUse() bool {
+	_, _, err := dlgs.Entry("Entry", "", "")
+	if err != nil {
+		return false
+	}
+	return true
 }

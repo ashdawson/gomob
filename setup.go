@@ -19,11 +19,12 @@ type Settings struct {
 	CommitMessage  string `json:"CommitMessage"`
 	IDE            string `json:"IDE"`
 	Mob            string `json:"Mob"`
+	Debug          bool
 	TimeLimit      int
 }
 
 func setup() {
-	runChecks()
+	//runChecks()
 	checkSettings()
 	readCommandLineArguments()
 }
@@ -32,7 +33,16 @@ func createSettings() {
 	_, err := os.Create(mobSettingsFile)
 	check(err)
 	remoteName, branchName := getBranchDetails()
-	getIDE, _ := notif.List("Please select your IDE", []string{"phpstorm", "vscode"})
+	var getIDE string
+	var getMob string
+	if notif.CanUse() {
+		getIDE, _ = notif.List("Please select your IDE", []string{"phpstorm", "vscode"})
+		getMob, _ = notif.MultiList("Please select your team", getPossibleTeam())
+	} else {
+		getIDE = AskInput("Pleases enter your IDE:", []string{"phpstorm", "vscode"})
+		getMob = AskInput("Please select your team:", getPossibleTeam())
+	}
+
 	settings = Settings{
 		"master",
 		"origin",
@@ -40,9 +50,11 @@ func createSettings() {
 		remoteName,
 		"WIP - [MOB] ",
 		getIDE,
-		"",
+		getMob,
+		false,
 		15,
 	}
+
 	saveSettings()
 }
 
@@ -75,6 +87,7 @@ func (settings *Settings) updateSetting(setting string, value string) {
 }
 
 func runChecks() {
-	_, err := os.Open(".git/info/exclude")
+	file, err := os.Open(".git/info/exclude")
+	file.Close()
 	checkSay(err, "git has not been added to this directory")
 }

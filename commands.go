@@ -11,8 +11,6 @@ import (
 	"strings"
 )
 
-var debug = false
-
 func runCommands() {
 	switch startCommand {
 	case "config":

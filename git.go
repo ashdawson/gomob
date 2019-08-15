@@ -12,12 +12,12 @@ var changeList []string
 
 func git(args ...string) string {
 	command := exec.Command("git", args...)
-	if debug {
+	if debug() {
 		fmt.Println(command.Args)
 	}
 	outputBinary, err := command.CombinedOutput()
 	output := string(outputBinary)
-	if debug {
+	if debug() {
 		fmt.Println(output)
 	}
 	if err != nil {

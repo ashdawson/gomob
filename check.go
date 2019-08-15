@@ -19,3 +19,7 @@ func exit() {
 	sayInfo("exiting application")
 	os.Exit(1)
 }
+
+func debug() bool {
+	return settings.Debug
+}
