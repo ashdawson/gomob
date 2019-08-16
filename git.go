@@ -80,7 +80,7 @@ func getCommitters() []string {
 
 func hasCommits() bool {
 	output := git("status", "--short")
-	isMobbing := len(strings.TrimSpace(output)) == 0
+	isMobbing := len(strings.TrimSpace(output)) > 0
 	return isMobbing
 }
 
@@ -129,11 +129,20 @@ func getLastFileChanges(filenames []string) {
 }
 
 func commitMessage() string {
-	return settings.CommitMessage + getModifiedFiles()
+	modifiedFiles := getModifiedFiles()
+	if len(modifiedFiles) == 0 {
+		modifiedFiles = "Empty commit to be removed during rebase"
+	}
+	return settings.CommitMessage + modifiedFiles
 }
 
 func commit() {
 	message := commitMessage()
 	git("add", "--all")
 	git("commit", "--message", message)
+}
+
+func commitWithEmpty() {
+	message := commitMessage()
+	git("commit", "--allow-empty", "--message", message)
 }

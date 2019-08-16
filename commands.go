@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -53,16 +54,21 @@ func joinSession() {
 }
 
 func next() {
-	join()
-	if !isTimerOnly && hasCommits() {
-		commit()
-		git("push")
-		sayInfo("Changes pushed to " + getBranch())
+	if !isTimerOnly {
+		if hasCommits() {
+			commit()
+		} else {
+			commitWithEmpty()
+		}
 	}
+
+	git("push")
+	sayInfo("Changes pushed to " + getBranch())
 
 	if getGitUserName() == getNextAuthor() {
 		notif.Notify(getNextAuthor() + " is next.")
 	}
+	join()
 }
 
 func config() {
@@ -91,19 +97,20 @@ func openFiles() {
 	app := strings.ToLower(settings.IDE)
 	if len(getLastCommitMessage()) > 0 && supportedIDE[app] {
 		if runtime.GOOS == "windows" && app == "phpstorm" {
-			app = app + ".exe"
+			const systemType = 32 << (^uint(0) >> 32 & 1)
+			app = app + strconv.Itoa(systemType)
 		}
 
-		var command *exec.Cmd
 		if app == "vscode" {
 			app = "code"
 		}
+
+		var command *exec.Cmd
 		command = exec.Command(app, getLastCommitMessage()...)
 		err := command.Run()
 		if err != nil {
 			sayError(command.Args)
 			sayError(err)
-			exit()
 		}
 	}
 }
