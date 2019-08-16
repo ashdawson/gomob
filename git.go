@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -45,8 +46,11 @@ func getBranch() string {
 	return settings.RemoteName + "/" + settings.BranchName
 }
 
-func getLastCommitMessage() []string {
-	message := git("log", "-1", "--pretty=%B")
+func getLastCommitMessage() string {
+	return git("log", "-1", "--pretty=%B")
+}
+
+func getLastCommittedFiles(message string) []string {
 	var files []string
 	if strings.Contains(message, settings.CommitMessage) {
 		message = strings.Replace(message, settings.CommitMessage, "", -1)
@@ -63,7 +67,6 @@ func getLastCommitMessage() []string {
 func getModifiedFiles() string {
 	fileNames := strings.Split(git("diff", "--name-only"), "\n")
 	fileString := ""
-	getLastFileChanges(fileNames)
 	for _, file := range fileNames {
 		if len(file) > 0 {
 			fileString = fileString + file + " "
@@ -89,16 +92,6 @@ func isMobbing() bool {
 	return strings.Contains(output, "* "+settings.BranchName)
 }
 
-func hasMobbingBranch() bool {
-	output := git("branch")
-	return strings.Contains(output, "  "+settings.BranchName) || strings.Contains(output, "* "+settings.BranchName)
-}
-
-func hasMobbingBranchOrigin() bool {
-	output := git("branch", "--remotes")
-	return strings.Contains(output, "  "+getBranch())
-}
-
 func isLastChangeSecondsAgo() bool {
 	recentlyUpdated := git("--no-pager", "log", getBranch(), "-1", "--pretty=format:%cr", "--abbrev-commit")
 	return strings.Contains(recentlyUpdated, "seconds ago") || strings.Contains(recentlyUpdated, "second ago")
@@ -118,7 +111,7 @@ func (settings *Settings) updateBranch() {
 func getLastFileChanges(filenames []string) {
 	for i := range filenames {
 		for minute := 1; minute < settings.TimeLimit; minute++ {
-			blame := git("blame","--since=" + strconv.Itoa(minute) + ".seconds",filenames[i],"|","grep","-v","'^\\^'")
+			blame := git("blame","--since=" + strconv.Itoa(minute) + ".seconds",filenames[i],"|", doesNotInclude("^\\^"))
 
 			if len(blame) > 0 {
 				fmt.Println(blame)
@@ -126,6 +119,13 @@ func getLastFileChanges(filenames []string) {
 			}
 		}
 	}
+}
+
+func doesNotInclude(content string) string {
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf("findstr /V '%s'", content)
+	}
+	return fmt.Sprintf("grep -v '%s'", content)
 }
 
 func commitMessage() string {

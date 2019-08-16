@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
 var startCommand string
+var mobRotation []string
 
 type Committer struct {
 	Name string
@@ -13,6 +15,7 @@ type Committer struct {
 }
 
 func getNextAuthor() string {
+	// Used to determine new members
 	committerStorage := make(map[string]Committer)
 	committers := getCommitters()
 	for i := 0; i < len(committers); i++ {
@@ -64,18 +67,38 @@ func getPossibleTeam() []string {
 
 	return possibleTeam
 }
-//
-//func getLastCommitter() {
-//	var possibleTeam []string
-//	//git log --committer="\(Sam Litowitz\)\|\(ashdawson\)\|\(jrcaranddang\)" --pretty=format:"%cn"
-//	output := git("log", "--committer=", "-s", "-n", "--since=7.days")
-//	if output != "" {
-//		lines := strings.Split(strings.TrimSpace(output),"\n")
-//		for i := 0; i < len(lines); i++ {
-//			member := strings.Split(lines[i],"\t")
-//			possibleTeam = append(possibleTeam, member[1])
-//		}
-//	}
-//
-//	return possibleTeam
-//}
+
+func getNextDriver() string {
+	committers := fmt.Sprintf("--committer=%s", getMobMembers())
+	output := git("--no-pager", "log", committers, "--pretty=format:%cn", "--all")
+	membersSlice := make(map[string]bool)
+
+	if output != "" {
+		lines := strings.Split(strings.TrimSpace(output),"\n")
+		for _, member := range lines {
+			if _, ok := membersSlice[member]; !ok {
+				membersSlice[strings.TrimSpace(member)] = true
+				mobRotation = append(mobRotation, strings.TrimSpace(member))
+			}
+		}
+	}
+
+	if len(mobRotation) > 1 {
+		return mobRotation[1]
+	}
+
+	return ""
+}
+
+func getMobMembers() string {
+	members := strings.Split(settings.Mob, ",")
+	mobRotation = append(members, getGitUserName())
+
+	var output string
+
+	for _, member := range mobRotation {
+		output += fmt.Sprintf("\\(%s\\)\\|", member)
+	}
+
+	return strings.TrimSuffix(output, "\\|")
+}

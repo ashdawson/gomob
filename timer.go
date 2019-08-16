@@ -34,10 +34,14 @@ func join() {
 		defer wg.Done()
 		settings.updateBranch()
 		time.Sleep(1 * time.Second)
-		if getGitUserName() == getNextAuthor() && isLastChangeSecondsAgo() {
-			notif.Notify("It is your turn to start")
-			startSession()
-			return
+		if isLastChangeSecondsAgo() {
+			git("pull")
+
+			if getGitUserName() == getNextDriver() {
+				notif.Notify("It is your turn to start")
+				startSession()
+				return
+			}
 		}
 		join()
 	}()

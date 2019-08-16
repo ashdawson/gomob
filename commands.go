@@ -26,6 +26,9 @@ func runCommands() {
 	case "next":
 		next()
 		break
+	case "driver":
+		notif.Notify(getNextDriver() + " is next.")
+		break
 	case "help":
 		help()
 		break
@@ -64,10 +67,8 @@ func next() {
 
 	git("push")
 	sayInfo("Changes pushed to " + getBranch())
+	notif.Notify(getNextDriver() + " is next.")
 
-	if getGitUserName() == getNextAuthor() {
-		notif.Notify(getNextAuthor() + " is next.")
-	}
 	join()
 }
 
@@ -95,7 +96,9 @@ func openFiles() {
 		"vscode":   true,
 	}
 	app := strings.ToLower(settings.IDE)
-	if len(getLastCommitMessage()) > 0 && supportedIDE[app] {
+	lastMessage := getLastCommitMessage()
+	committedFiles := getLastCommittedFiles(lastMessage)
+	if len(committedFiles) > 0 && supportedIDE[app] && !strings.Contains(lastMessage, "Empty commit") {
 		if runtime.GOOS == "windows" && app == "phpstorm" {
 			const systemType = 32 << (^uint(0) >> 32 & 1)
 			app = app + strconv.Itoa(systemType)
@@ -106,7 +109,7 @@ func openFiles() {
 		}
 
 		var command *exec.Cmd
-		command = exec.Command(app, getLastCommitMessage()...)
+		command = exec.Command(app, committedFiles...)
 		err := command.Run()
 		if err != nil {
 			sayError(command.Args)
