@@ -24,7 +24,7 @@ type Settings struct {
 }
 
 func setup() {
-	//runChecks()
+	runChecks()
 	checkSettings()
 	readCommandLineArguments()
 }
@@ -87,7 +87,7 @@ func (settings *Settings) updateSetting(setting string, value string) {
 }
 
 func runChecks() {
-	file, err := os.Open(".git/info/exclude")
-	file.Close()
-	checkSay(err, "git has not been added to this directory")
+	if _, err := os.Stat(".git"); os.IsNotExist(err) {
+		checkSay(err, "git has not been added to this directory")
+	}
 }

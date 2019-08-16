@@ -25,7 +25,7 @@ func git(args ...string) string {
 		sayError(err)
 		exit()
 	}
-	return output
+	return strings.TrimSpace(output)
 }
 
 func getGitUserName() string {

@@ -50,14 +50,32 @@ func getNextAuthor() string {
 
 func getPossibleTeam() []string {
 	var possibleTeam []string
-	output := git("shortlog", getBranch(), "-s", "-n", "--since=7.days")
+	output := git("shortlog", getBranch(), "-sne", "--since=7.days")
 	if output != "" {
-		lines := strings.Split(strings.TrimSpace(output),"\n")
+		lines := strings.Split(output,"\n")
 		for i := 0; i < len(lines); i++ {
 			member := strings.Split(lines[i],"\t")
-			possibleTeam = append(possibleTeam, member[1])
+			if !strings.Contains(member[1], getGitUserEmail()) {
+				emailIndex := strings.Index(member[1], "<")
+				possibleTeam = append(possibleTeam, member[1][0:emailIndex])
+			}
 		}
 	}
 
 	return possibleTeam
 }
+//
+//func getLastCommitter() {
+//	var possibleTeam []string
+//	//git log --committer="\(Sam Litowitz\)\|\(ashdawson\)\|\(jrcaranddang\)" --pretty=format:"%cn"
+//	output := git("log", "--committer=", "-s", "-n", "--since=7.days")
+//	if output != "" {
+//		lines := strings.Split(strings.TrimSpace(output),"\n")
+//		for i := 0; i < len(lines); i++ {
+//			member := strings.Split(lines[i],"\t")
+//			possibleTeam = append(possibleTeam, member[1])
+//		}
+//	}
+//
+//	return possibleTeam
+//}
