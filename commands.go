@@ -28,6 +28,7 @@ func runCommands() {
 		break
 	case "driver":
 		notif.Notify(getNextDriver() + " is next.")
+		sayInfo(mobRotation)
 		break
 	case "help":
 		help()

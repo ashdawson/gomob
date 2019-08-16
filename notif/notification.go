@@ -39,6 +39,9 @@ func List(message string, list []string) (string, bool) {
 func MultiList(message string, list []string) (string, bool) {
 	selection, ok, err := dlgs.ListMulti("List", message, list)
 	check(err)
+	for i, v := range selection {
+		selection[i] = strings.TrimSpace(v)
+	}
 	return strings.Join(selection, ","), ok
 }
 

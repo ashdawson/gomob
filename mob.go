@@ -77,8 +77,7 @@ func getNextDriver() string {
 		lines := strings.Split(strings.TrimSpace(output),"\n")
 		for _, member := range lines {
 			if _, ok := membersSlice[member]; !ok {
-				membersSlice[strings.TrimSpace(member)] = true
-				mobRotation = append(mobRotation, strings.TrimSpace(member))
+				membersSlice[member] = true
 			}
 		}
 	}
