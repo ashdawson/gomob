@@ -82,11 +82,10 @@ func help() {
 	say("usage")
 	say("\tmob [s]tart \t# start mobbing")
 	say("\tmob [j]oin \t# like start but waits for recent commit")
-	say("\tmob [n]ext \t# hand over to next typist")
-	say("\tmob [d]one \t# finish mob session")
-	say("\tmob status \t# show status of mob session")
+	say("\tmob [d]river \t# display the next driver")
+	say("\tmob [c]onfig \t# display the config")
+	say("\tmob [r]eset \t# clear your settings")
 	say("\tmob --help \t# prints this help")
-	say("\tmob --version \t# prints the version")
 }
 
 func openFiles() {
