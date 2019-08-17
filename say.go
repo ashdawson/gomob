@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/ashdawson/gomob/notif"
+)
 
 func say(s interface{}) {
 	fmt.Print(s)
@@ -30,4 +33,10 @@ func sayTodo(s interface{}) {
 func sayInfo(s interface{}) {
 	fmt.Print(" > ")
 	say(s)
+}
+
+func sayNotify(s interface{}) {
+	fmt.Print(" > ")
+	say(s)
+	notif.Notify(fmt.Sprintf("%v", s))
 }

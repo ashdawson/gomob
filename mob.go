@@ -69,7 +69,7 @@ func getPossibleTeam() []string {
 }
 
 func getNextDriver() string {
-	committers := fmt.Sprintf("--committer=%s", getMobMembers())
+	committers := fmt.Sprintf("--author=%s", getMobMembers())
 	output := git("--no-pager", "log", committers, "--pretty=format:%cn", "--all")
 	membersSlice := make(map[string]bool)
 
@@ -83,7 +83,7 @@ func getNextDriver() string {
 	}
 
 	if len(mobRotation) > 1 {
-		return mobRotation[1]
+		return mobRotation[len(mobRotation)-1]
 	}
 
 	return ""

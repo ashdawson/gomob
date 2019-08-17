@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ashdawson/gomob/clock"
-	"github.com/ashdawson/gomob/notif"
 	"os"
 	"os/exec"
 	"runtime"
@@ -27,8 +26,7 @@ func runCommands() {
 		next()
 		break
 	case "driver":
-		notif.Notify(getNextDriver() + " is next.")
-		sayInfo(mobRotation)
+		sayNotify(getNextDriver() + " is next.")
 		break
 	case "help":
 		help()
@@ -68,7 +66,7 @@ func next() {
 
 	git("push")
 	sayInfo("Changes pushed to " + getBranch())
-	notif.Notify(getNextDriver() + " is next.")
+	sayNotify(getNextDriver() + " is next.")
 
 	join()
 }
