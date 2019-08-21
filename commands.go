@@ -56,18 +56,20 @@ func joinSession() {
 }
 
 func next() {
-	if !isTimerOnly {
-		if hasCommits() {
-			commit()
+	if !isTimerOnly && hasCommits() {
+		response := AskConfirmation("Commit with generated message?")
+		if response {
+			commit("")
 		} else {
-			commitWithEmpty()
+			message := AskInput("Commit message:")
+			commit(message)
 		}
+
+		git("push")
+		sayInfo("Changes pushed to " + getBranch())
 	}
 
-	git("push")
-	sayInfo("Changes pushed to " + getBranch())
 	sayNotify(getNextDriver() + " is next.")
-
 	join()
 }
 
@@ -106,6 +108,8 @@ func openFiles() {
 			app = "code"
 		}
 
+		sayInfo("Attempting to open last committed files.")
+		sayInfo(lastMessage)
 		var command *exec.Cmd
 		command = exec.Command(app, committedFiles...)
 		err := command.Run()

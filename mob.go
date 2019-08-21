@@ -8,49 +8,6 @@ import (
 var startCommand string
 var mobRotation []string
 
-type Committer struct {
-	Name string
-	Email string
-	Count int
-}
-
-func getNextAuthor() string {
-	// Used to determine new members
-	committerStorage := make(map[string]Committer)
-	committers := getCommitters()
-	for i := 0; i < len(committers); i++ {
-		details := strings.Split(committers[i], "|")
-		if len(details) == 1 {
-			break
-		}
-		email := details[0]
-		name := details[1]
-		committer, exists := committerStorage[email];
-
-		if exists {
-			committer.Count++
-			committerStorage[email] = committer
-		} else {
-			committerStorage[email] = Committer{
-				Name: name,
-				Email: email,
-				Count: 1,
-			}
-		}
-	}
-
-	committerStorageLen := len(committerStorage)
-	currentCount := 1
-	for _, v := range committerStorage {
-		if currentCount == committerStorageLen {
-			return v.Name
-		}
-		currentCount++
-	}
-
-	return ""
-}
-
 func getPossibleTeam() []string {
 	var possibleTeam []string
 	output := git("shortlog", getBranch(), "-sne", "--since=7.days")
@@ -70,23 +27,21 @@ func getPossibleTeam() []string {
 
 func getNextDriver() string {
 	committers := fmt.Sprintf("--author=%s", getMobMembers())
-	output := git("--no-pager", "log", committers, "--pretty=format:%cn", "--all")
+	output := git("--no-pager", "log", committers, "--pretty=format:%cn", "--all", "--since=1.days")
 	membersSlice := make(map[string]bool)
+	nextIndex := 0
 
 	if output != "" {
 		lines := strings.Split(strings.TrimSpace(output),"\n")
 		for _, member := range lines {
 			if _, ok := membersSlice[member]; !ok {
 				membersSlice[member] = true
+				nextIndex = IndexOf(mobRotation, member)
 			}
 		}
 	}
 
-	if len(mobRotation) > 1 {
-		return mobRotation[len(mobRotation)-1]
-	}
-
-	return ""
+	return mobRotation[nextIndex]
 }
 
 func getMobMembers() string {
@@ -100,4 +55,14 @@ func getMobMembers() string {
 	}
 
 	return strings.TrimSuffix(output, "\\|")
+}
+
+func IndexOf(haystack []string, needle string) int {
+	for i := 0; i < len(haystack); i++ {
+		if haystack[i] == needle && len(haystack) != i {
+			return i
+		}
+	}
+
+	return 0
 }

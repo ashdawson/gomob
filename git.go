@@ -93,7 +93,8 @@ func isMobbing() bool {
 }
 
 func isLastChangeSecondsAgo() bool {
-	recentlyUpdated := git("--no-pager", "log", getBranch(), "-1", "--pretty=format:%cr", "--abbrev-commit")
+	_ = git("fetch")
+	recentlyUpdated := git("--no-pager", "log", "HEAD", "-1", "--pretty=format:%cr", "--abbrev-commit")
 	return strings.Contains(recentlyUpdated, "seconds ago") || strings.Contains(recentlyUpdated, "second ago")
 }
 
@@ -136,13 +137,13 @@ func commitMessage() string {
 	return settings.CommitMessage + modifiedFiles
 }
 
-func commit() {
-	message := commitMessage()
+func commit(input string) {
+	message := input
+	if len(input) <= 0 {
+		message = commitMessage()
+	}
+
 	git("add", "--all")
 	git("commit", "--message", message)
-}
-
-func commitWithEmpty() {
-	message := commitMessage()
-	git("commit", "--allow-empty", "--message", message)
+	//git("commit", "--allow-empty", "--message", message)
 }
