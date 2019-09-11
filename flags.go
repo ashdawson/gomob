@@ -9,22 +9,23 @@ import (
 // Read reads the command line
 func readCommandLineArguments() {
 	startCommand = getStartCommand()
-	flag.IntVar(&settings.TimeLimit, "time_limit", settings.TimeLimit, "mob session time")
-	flag.BoolVar(&isTimerOnly, "timer", isTimerOnly, "set if you only want to use the app as a timer")
-	flag.BoolVar(&settings.Debug, "debug", settings.Debug, "display output of commands")
-	flag.StringVar(&settings.IDE, "ide", settings.IDE, "ide used to open files from commit messages")
-	flag.StringVar(&settings.BranchName, "branch", settings.BranchName, "current branch you are working on")
-	flag.StringVar(&settings.RemoteName, "remote", settings.RemoteName, "the name of the remote")
-	flag.StringVar(&settings.BaseBranchName, "base_branch", settings.BaseBranchName, "current base branch you are working on")
-	flag.StringVar(&settings.BaseRemoteName, "base_remote", settings.BaseRemoteName, "the name of the base remote")
-	flag.StringVar(&settings.CommitMessage, "commit_message", settings.CommitMessage, "commit message appended to start of each commit")
+	flag.IntVar(&config.TimeLimit, "time_limit", config.TimeLimit, "mob session time")
+	flag.StringVar(&config.IDE, "ide", config.IDE, "ide used to open files from commit messages")
+	flag.StringVar(&config.BranchName, "branch", config.BranchName, "current branch you are working on")
+	flag.StringVar(&config.RemoteName, "remote", config.RemoteName, "the name of the remote")
+	flag.StringVar(&config.BaseBranchName, "base_branch", config.BaseBranchName, "current base branch you are working on")
+	flag.StringVar(&config.BaseRemoteName, "base_remote", config.BaseRemoteName, "the name of the base remote")
+	flag.StringVar(&config.CommitMessage, "commit_message", config.CommitMessage, "commit message appended to start of each commit")
+
+	flag.BoolVar(&settings.TimerOnly, "timer", false, "set if you only want to use the app as a timer")
+	flag.BoolVar(&settings.Debug, "debug", false, "display output of commands")
 
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		fmt.Println("No command line options were found for: ", flag.Args())
 	}
 
-	saveSettings()
+	config.save()
 }
 
 func getStartCommand() string {

@@ -2,45 +2,41 @@ package main
 
 import (
 	"github.com/ashdawson/gomob/notif"
-	"strconv"
 	"time"
+	"fmt"
 )
-
-var isTimerOnly = false
-var sessionStartTime time.Time
 
 func startTimer(reminderTime int) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		settings.updateBranch()
+		config.updateBranch()
 		time.Sleep(time.Duration(reminderTime) * time.Minute)
-		notif.Notify("Your mob time has ended")
-		var swap = notif.Question("Your mob time has ended. Are you ready to swap?")
+		swap := AskConfirmation("Your mob time has ended. Are you ready to swap?")
 		if swap {
 			next()
 		} else {
-			var selected, _ = notif.List("Remind me again in:", []string{"5", "10", "15"})
-			reminderTime, err := strconv.Atoi(selected)
-			check(err)
-			startTimer(reminderTime)
+			sayInfo(fmt.Sprintf("Will remind you again in (%d minutes)", 5))
+			time.Sleep(time.Duration(5) * time.Minute)
 		}
 	}()
 }
 
-func join() {
+func joinTimer() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		settings.updateBranch()
+		config.updateBranch()
 		time.Sleep(1 * time.Second)
-		if isLastChangeSecondsAgo() && getGitUserName() == getNextDriver() {
-			git("pull")
+		if isLastChangeSecondsAgo() {
+			if getGitUserName() == getNextDriver() {
+				git("pull")
 
-			notif.Notify("It is your turn to start")
-			startSession()
-			return
+				notif.Notify("It is your turn to start")
+				startSession()
+				return
+			}
 		}
-		join()
+		joinTimer()
 	}()
 }

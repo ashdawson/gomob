@@ -26,8 +26,8 @@ func getPossibleTeam() []string {
 }
 
 func getNextDriver() string {
-	committers := fmt.Sprintf("--author=%s", getMobMembers())
-	output := git("--no-pager", "log", committers, "--pretty=format:%cn", "--all", "--since=1.days")
+	authors := fmt.Sprintf("--author=%s", getMobMembers())
+	output := git("--no-pager", "log", authors, "--pretty=format:%cn", "--all", "--since=1.days")
 	membersSlice := make(map[string]bool)
 	nextIndex := 0
 
@@ -45,7 +45,7 @@ func getNextDriver() string {
 }
 
 func getMobMembers() string {
-	members := strings.Split(settings.Mob, ",")
+	members := strings.Split(config.Mob, ",")
 	mobRotation = append(members, getGitUserName())
 
 	var output string

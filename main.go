@@ -9,6 +9,7 @@ var wg = &sync.WaitGroup{}
 func main() {
 	say("GoMob - An automated mobbing tool")
 
+	hasGit()
 	setup()
 	runCommands()
 }

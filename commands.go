@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ashdawson/gomob/clock"
 	"os"
 	"os/exec"
 	"runtime"
@@ -14,7 +13,7 @@ import (
 func runCommands() {
 	switch startCommand {
 	case "config":
-		config()
+		outputConfig()
 		break
 	case "start":
 		startSession()
@@ -38,30 +37,29 @@ func runCommands() {
 }
 
 func startSession() {
-	if !isTimerOnly {
+	if !settings.TimerOnly {
 		openFiles()
 
 		git("fetch", "--prune")
 		git("pull")
 	}
 
-	sayInfo(fmt.Sprintf("Session started (%d minutes)", settings.TimeLimit))
-	sessionStartTime = clock.New().Now()
-	startTimer(settings.TimeLimit)
+	sayInfo(fmt.Sprintf("Session started (%d minutes)", config.TimeLimit))
+	startTimer(config.TimeLimit)
 }
 
 func joinSession() {
 	sayInfo("Tracking changes to: " + getBranch())
-	join()
+	joinTimer()
 }
 
 func next() {
-	if !isTimerOnly && hasCommits() {
+	if !settings.TimerOnly && hasCommits() {
 		response := AskConfirmation("Commit with generated message?")
 		if response {
 			commit("")
 		} else {
-			message := AskInput("Commit message:")
+			message := AskInput("Commit message")
 			commit(message)
 		}
 
@@ -70,12 +68,12 @@ func next() {
 	}
 
 	sayNotify(getNextDriver() + " is next.")
-	join()
+	joinTimer()
 }
 
-func config() {
+func outputConfig() {
 	say("config")
-	s, _ := json.MarshalIndent(settings, "", "\t")
+	s, _ := json.MarshalIndent(config, "", "\t")
 	say(string(s))
 }
 
@@ -95,7 +93,7 @@ func openFiles() {
 		"phpstorm": true,
 		"vscode":   true,
 	}
-	app := strings.ToLower(settings.IDE)
+	app := strings.ToLower(config.IDE)
 	lastMessage := getLastCommitMessage()
 	committedFiles := getLastCommittedFiles(lastMessage)
 	if len(committedFiles) > 0 && supportedIDE[app] && !strings.Contains(lastMessage, "Empty commit") {

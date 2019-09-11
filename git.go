@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -10,6 +11,12 @@ import (
 
 var lastBranch string
 var changeList []string
+
+func hasGit() {
+	if _, err := os.Stat(".git"); os.IsNotExist(err) {
+		checkSay(err, "git has not been added to this directory")
+	}
+}
 
 func git(args ...string) string {
 	command := exec.Command("git", args...)
@@ -43,7 +50,7 @@ func getBranchDetails() (string, string) {
 }
 
 func getBranch() string {
-	return settings.RemoteName + "/" + settings.BranchName
+	return config.RemoteName + "/" + config.BranchName
 }
 
 func getLastCommitMessage() string {
@@ -52,8 +59,8 @@ func getLastCommitMessage() string {
 
 func getLastCommittedFiles(message string) []string {
 	var files []string
-	if strings.Contains(message, settings.CommitMessage) {
-		message = strings.Replace(message, settings.CommitMessage, "", -1)
+	if strings.Contains(message, config.CommitMessage) {
+		message = strings.Replace(message, config.CommitMessage, "", -1)
 		message = strings.Replace(message, "\n", "", -1)
 		files = strings.Split(message, " ")
 		for i := range files {
@@ -89,7 +96,7 @@ func hasCommits() bool {
 
 func isMobbing() bool {
 	output := git("branch")
-	return strings.Contains(output, "* "+settings.BranchName)
+	return strings.Contains(output, "* "+config.BranchName)
 }
 
 func isLastChangeSecondsAgo() bool {
@@ -98,20 +105,20 @@ func isLastChangeSecondsAgo() bool {
 	return strings.Contains(recentlyUpdated, "seconds ago") || strings.Contains(recentlyUpdated, "second ago")
 }
 
-func (settings *Settings) updateBranch() {
+func (settings *Config) updateBranch() {
 	remoteName, branchName := getBranchDetails()
 	if settings.RemoteName != remoteName || settings.BranchName != branchName {
 		settings.RemoteName = remoteName
 		settings.BranchName = branchName
 
 		sayInfo(fmt.Sprintf("Now tracking changes to: %s/%s", settings.RemoteName, settings.BranchName))
-		saveSettings()
+		settings.save()
 	}
 }
 
 func getLastFileChanges(filenames []string) {
 	for i := range filenames {
-		for minute := 1; minute < settings.TimeLimit; minute++ {
+		for minute := 1; minute < config.TimeLimit; minute++ {
 			blame := git("blame","--since=" + strconv.Itoa(minute) + ".seconds",filenames[i],"|", doesNotInclude("^\\^"))
 
 			if len(blame) > 0 {
@@ -134,7 +141,7 @@ func commitMessage() string {
 	if len(modifiedFiles) == 0 {
 		modifiedFiles = "Empty commit to be removed during rebase"
 	}
-	return settings.CommitMessage + modifiedFiles
+	return config.CommitMessage + modifiedFiles
 }
 
 func commit(input string) {
